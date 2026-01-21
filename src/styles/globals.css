@@ -1,0 +1,281 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+:root {
+  /* ========== TYPOGRAPHY ========== */
+  --font-family-body: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --font-family-heading-legacy: 'GT Eesti Display', -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --font-family-mono: Menlo, Courier, monospace;
+  --font-size-body-xsmall: 9px;
+  --font-size-body-small: 11px;
+  --font-size-xxsmall: 12px;
+  --font-size-default: 13px;
+  --font-size-medium: 14px;
+  --font-size-body-large: 15px;
+  --font-size-heading-xxsmall: 13px;
+  --font-size-heading-small: 17px;
+  --font-size-heading: 21px;
+  --font-size-heading-xxxlarge: 35px;
+  --line-height-default: 18px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+
+  /* ========== COLOR PALETTE - GRAYS ========== */
+  --palette-gray-gray25: rgb(249, 250, 251);
+  --palette-gray-200: rgb(218, 222, 230);
+  --palette-gray-350: rgb(148, 148, 148);
+  --palette-gray-500: rgb(97, 102, 112);
+  --palette-gray-700: rgb(49, 53, 62);
+  --palette-gray-900: rgb(17, 18, 21);
+  --palette-neutral-lightGray1: rgb(246, 248, 252);
+  --palette-neutral-lightGray4: rgb(218, 222, 230);
+  --palette-neutral-white: rgb(255, 255, 255);
+  --palette-neutral-trueBlack: rgb(0, 0, 0);
+
+  /* ========== COLOR PALETTE - BLUES ========== */
+  --palette-blue: rgb(22, 110, 225);
+  --palette-blue-dark1: rgb(6, 79, 185);
+  --palette-blue-dusty: rgb(59, 102, 163);
+  --palette-blue-light1: rgb(130, 177, 255);
+  --palette-blue-light2: rgb(193, 217, 255);
+
+  /* ========== COLOR PALETTE - TEALS ========== */
+  --palette-teal: rgb(1, 221, 213);
+  --palette-teal-dark1: rgb(0, 131, 125);
+  --palette-teal-dusty: rgb(13, 127, 120);
+  --palette-teal-light1: rgb(116, 235, 225);
+  --palette-teal-light2: rgb(193, 245, 240);
+
+  /* ========== COLOR PALETTE - GREENS ========== */
+  --palette-green: rgb(4, 138, 14);
+  --palette-green-dark1: rgb(0, 100, 0);
+  --palette-green-dusty: rgb(64, 124, 74);
+  --palette-green-light1: rgb(135, 226, 139);
+  --palette-green-light2: rgb(207, 245, 209);
+  --palette-green-light3: rgb(230, 252, 232);
+
+  /* ========== COLOR PALETTE - REDS ========== */
+  --palette-red: rgb(220, 4, 59);
+  --palette-red-dark1: rgb(180, 0, 49);
+  --palette-red-dusty: rgb(153, 69, 90);
+  --palette-red-light1: rgb(255, 123, 139);
+  --palette-red-light2: rgb(254, 200, 211);
+
+  /* ========== COLOR PALETTE - ORANGES ========== */
+  --palette-orange: rgb(213, 68, 1);
+  --palette-orange-dark1: rgb(170, 45, 0);
+  --palette-orange-light1: rgb(255, 182, 142);
+  --palette-orange-light2: rgb(255, 224, 204);
+
+  /* ========== COLOR PALETTE - YELLOWS ========== */
+  --palette-yellow: rgb(212, 160, 0);
+  --palette-yellow-dark1: rgb(163, 113, 0);
+  --palette-yellow-light1: rgb(255, 230, 128);
+  --palette-yellow-light2: rgb(255, 244, 194);
+
+  /* ========== COLOR PALETTE - PURPLES ========== */
+  --palette-purple: rgb(135, 46, 255);
+  --palette-purple-dark1: rgb(98, 49, 174);
+  --palette-purple-dusty: rgb(106, 70, 167);
+  --palette-purple-light1: rgb(191, 174, 252);
+  --palette-purple-light2: rgb(224, 218, 253);
+
+  /* ========== COLOR PALETTE - PINKS ========== */
+  --palette-pink: rgb(227, 14, 154);
+  --palette-pink-dusty: rgb(140, 63, 120);
+  --palette-pink-light2: rgb(250, 210, 252);
+
+  /* ========== COLOR PALETTE - CYANS ========== */
+  --palette-cyan: rgb(57, 202, 255);
+  --palette-cyan-dark1: rgb(15, 104, 162);
+  --palette-cyan-dusty: rgb(16, 125, 163);
+  --palette-cyan-light3: rgb(227, 250, 253);
+
+  /* ========== SEMANTIC COLORS ========== */
+  --color-foreground-default: rgb(29, 31, 37);
+  --color-foreground-subtle: rgb(97, 102, 112);
+  --color-foreground-subtler: rgb(151, 154, 160);
+  --color-foreground-success: rgb(0, 100, 0);
+  --color-foreground-negative: rgb(177, 15, 65);
+  --color-foreground-ai: #AB0A83;
+
+  --colors-hyperlink-default: rgb(29, 31, 37);
+  --colors-hyperlink-primary: rgb(22, 110, 225);
+  --colors-hyperlink-primary-hover: rgb(13, 82, 172);
+
+  --color-background-default: rgb(255, 255, 255);
+  --color-background-selected: rgba(0, 0, 0, 0.05);
+  --color-background-selected-blue: rgba(22, 110, 225, 0.05);
+  --color-background-hover: rgb(229, 233, 240);
+  --color-background-switch-track: rgb(218, 222, 230);
+  --color-background-primary: rgb(22, 110, 225);
+  --color-background-notice: rgb(255, 246, 221);
+  --color-background-informational: rgb(241, 245, 255);
+  --color-background-negative: rgb(255, 242, 250);
+  --color-background-raised-surface: rgb(255, 255, 255);
+  --color-background-raised-popover: rgb(255, 255, 255);
+  --color-background-raised-control: rgb(255, 255, 255);
+  --color-background-inset-surface: rgb(255, 255, 255);
+  --color-background-workflow-find-records: rgb(255, 236, 227);
+
+  --color-border-default: rgba(0, 0, 0, 0.1);
+  --color-border-subtle: rgba(0, 0, 0, 0.05);
+  --color-border-focus: rgb(22, 110, 225);
+  --color-border-success: rgb(0, 100, 0);
+  --color-border-cell: rgb(204, 204, 204);
+  --color-border-cell-bottom: rgb(209, 209, 209);
+
+  /* ========== OPACITY VARIANTS ========== */
+  --opacity-darken1: rgba(0, 0, 0, 0.05);
+  --opacity-darken2: rgba(0, 0, 0, 0.1);
+  --opacity-darken3: rgba(0, 0, 0, 0.25);
+  --opacity-darken5: rgba(0, 0, 0, 0.6);
+  --opacity-lighten1: rgba(255, 255, 255, 0.05);
+  --opacity-lighten4: rgba(255, 255, 255, 0.5);
+
+  /* ========== TABLE/CELL SPECIFIC ========== */
+  --cell-background-header: #f4f4f4;
+  --cell-background-header-selected: #e7edf6;
+  --cell-background-leftPane-header: #f2f2f2;
+  --cell-background-found: #fff3d3;
+  --cell-background-found-cursor: #ffd66b;
+  --cell-background-fillCandidate-foundCursor: #f0c965;
+  --cell-background-search-match: #ffd66b;
+  --cell-background-row-number-hover: hsl(200, 18%, 95%);
+  --cell-border-header: hsl(0, 0%, 82%);
+  --cell-height-short: 32px;
+  --cell-height-medium: 56px;
+  --cell-height-tall: 88px;
+  --cell-height-extra-tall: 120px;
+  --column-width-default: 180px;
+  --column-width-min: 100px;
+  --row-number-width: 44px;
+
+  /* ========== LAYOUT SIZES ========== */
+  --header-height: 57px;
+  --table-tabs-height: 32px;
+  --toolbar-height: 36px;
+  --sidebar-width: 264px;
+
+  /* ========== ELEVATION/SHADOWS ========== */
+  --elevation-low: 0px 0px 1px 0px rgba(0, 0, 0, 0.32), 0px 0px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 3px 0px rgba(0, 0, 0, 0.08);
+  --elevation-medium: 0px 0px 1px 0px rgba(0, 0, 0, 0.24), 0px 0px 2px 0px rgba(0, 0, 0, 0.08), 0px 2px 4px 0px rgba(0, 0, 0, 0.08);
+  --elevation-medium-right: 0px 0px 1px 0px rgba(0, 0, 0, 0.24), 0px 0px 2px 0px rgba(0, 0, 0, 0.08), 2px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  --elevation-high: 0px 0px 1px 0px rgba(0, 0, 0, 0.24), 0px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 8px 16px 0px rgba(0, 0, 0, 0.08);
+
+  /* ========== MOTION/TRANSITIONS ========== */
+  --motion-easing-standard: cubic-bezier(0.2, 0.1, 0.2, 1);
+  --motion-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --motion-easing-decelerate-fast: cubic-bezier(0, 0, 0, 1);
+  --motion-duration-fast: 150ms;
+  --motion-duration-medium: 300ms;
+  --motion-duration-slow: 1000ms;
+  --motion-decelerate-fast: cubic-bezier(0, 0, 0, 1) 100ms;
+  --transition-fast: var(--motion-easing-standard) var(--motion-duration-fast);
+  --transition-medium: var(--motion-easing-standard) var(--motion-duration-medium);
+
+  /* ========== MAIN NAV SIZING ========== */
+  --mainNavHeight: 79px;
+  --mainNavWidth: 702px;
+}
+
+/* ========== BASE STYLES ========== */
+body {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-default);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-default);
+  color: var(--color-foreground-default);
+  background-color: var(--color-background-default);
+}
+
+/* ========== TRANSITION UTILITIES ========== */
+.transition-fast {
+  transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.transition-medium {
+  transition: all var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
+/* ========== FOCUS STYLES ========== */
+*:focus-visible {
+  outline: 2px solid var(--palette-blue);
+  outline-offset: 2px;
+}
+
+/* ========== SCROLLBAR STYLES ========== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--palette-gray-200);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--palette-gray-350);
+}
+
+/* ========== DROPDOWN ANIMATIONS ========== */
+@keyframes dropdownOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dropdownClose {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dropdown-open {
+  animation: dropdownOpen var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.animate-modal-open {
+  animation: modalFadeIn var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.animate-modal-content {
+  animation: modalSlideIn var(--motion-duration-fast) var(--motion-easing-standard);
+}
