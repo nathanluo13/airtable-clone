@@ -14,7 +14,8 @@ export const LOCALHOST_URLS = {
   home: 'http://localhost:3000/dashboard',
   // Map to a specific base/table/view in localhost
   // Update these IDs to match your seeded data
-  table: 'http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda',
+  // Updated 2026-01-22: Using newest Test base with Test table
+  table: 'http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z',
 };
 
 /**

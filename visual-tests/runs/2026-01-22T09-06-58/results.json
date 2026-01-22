@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-01-22T09:07:10.742Z",
+  "run": "2026-01-22T09-06-58",
+  "summary": "0/1 passing",
+  "settings": {
+    "visualTolerance": 5,
+    "antialiasingTolerance": 5,
+    "pixelThreshold": 0.1
+  },
+  "stats": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "missing": 0,
+    "errors": 0
+  },
+  "results": [
+    {
+      "featureId": "ui-filter-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.96,
+      "pixelDiffCount": 82082,
+      "diffPath": "runs/2026-01-22T09-06-58/diffs/ui-filter-panel-visual.png"
+    }
+  ],
+  "failed": [
+    "ui-filter-panel"
+  ],
+  "nextPriority": "ui-filter-panel"
+}

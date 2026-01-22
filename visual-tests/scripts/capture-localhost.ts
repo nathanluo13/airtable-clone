@@ -35,17 +35,28 @@ function getTimestamp(): string {
 }
 
 async function ensureLoggedIn(page: Page, log: string[]): Promise<void> {
+  // Wait for any redirects to complete
+  await page.waitForTimeout(500);
+
   // Check if we're on the login page
   const url = page.url();
+  log.push(`   Current URL: ${url}`);
+  console.log(`   Current URL: ${url}`);
+
   if (url.includes('/login')) {
     log.push('🔐 Detected login page, attempting email login...');
     console.log('🔐 Detected login page, attempting email login...');
 
     try {
-      // Fill email login form
-      await page.fill('input[name="email"], input[type="email"]', TEST_EMAIL, { timeout: 5000 });
-      await page.fill('input[name="password"], input[type="password"]', TEST_PASSWORD, { timeout: 5000 });
-      await page.click('button[type="submit"]', { timeout: 5000 });
+      // Two-step login flow:
+      // Step 1: Enter email and click Continue
+      await page.fill('input[type="email"]', TEST_EMAIL, { timeout: 5000 });
+      await page.click('button:has-text("Continue")', { timeout: 5000 });
+
+      // Step 2: Wait for password form and fill it
+      await page.waitForSelector('input[type="password"]', { timeout: 5000 });
+      await page.fill('input[type="password"]', TEST_PASSWORD, { timeout: 5000 });
+      await page.click('button[type="submit"]:has-text("Sign In")', { timeout: 5000 });
 
       // Wait for redirect to dashboard
       await page.waitForURL('**/dashboard**', { timeout: 30000 });
@@ -83,6 +94,9 @@ async function executeClickSequence(page: Page, steps: ClickStep[], log: string[
         break;
       case 'wait':
         await page.waitForTimeout(step.value as number);
+        break;
+      case 'waitForSelector':
+        await page.waitForSelector(step.target!, { timeout: 30000 });
         break;
       case 'type':
         await page.fill(step.target!, step.value as string);

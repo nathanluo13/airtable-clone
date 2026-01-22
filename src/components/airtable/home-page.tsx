@@ -54,9 +54,36 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
 
   return (
     <div
-      className="flex h-screen text-[13px]"
+      className="flex h-screen flex-col text-[13px]"
       style={{ backgroundColor: "var(--color-background-default)", color: "var(--color-foreground-default)" }}
     >
+      {/* Top Promotional Banner */}
+      <div
+        className="flex h-[32px] items-center justify-center gap-2 text-[13px]"
+        style={{ backgroundColor: "var(--palette-blue-light3)" }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--palette-blue)">
+          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+          <path d="M8 4v4h3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+        </svg>
+        <span>
+          <a href="#" className="underline" style={{ color: "var(--palette-blue)" }}>
+            Invite your friends and coworkers
+          </a>
+          {" "}to earn account credit.
+        </span>
+        <button
+          type="button"
+          className="absolute right-4 rounded p-1 transition-colors"
+          style={{ color: "var(--color-foreground-subtle)" }}
+        >
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex flex-1 min-h-0">
       {/* Left Sidebar */}
       <aside
         className="flex w-[220px] flex-col"
@@ -65,12 +92,29 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
           borderRight: "1px solid var(--color-border-default)",
         }}
       >
-        {/* Logo */}
-        <div className="flex h-[57px] items-center px-4">
+        {/* Header with hamburger menu and logo */}
+        <div className="flex h-[57px] items-center gap-2 px-3">
+          {/* Hamburger Menu */}
+          <button
+            type="button"
+            className="rounded p-2 transition-colors"
+            style={{ color: "var(--color-foreground-subtle)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
+            </svg>
+          </button>
+          {/* Airtable Logo - Colorful 3D style */}
           <div className="flex items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect width="24" height="24" rx="4" fill="var(--palette-blue)" />
-              <path d="M6 8h12v2H6V8zm0 4h8v2H6v-2z" fill="white" />
+            <svg width="24" height="24" viewBox="0 0 200 170" fill="none">
+              {/* Yellow face */}
+              <path d="M90.039 12.368L24.079 39.66c-3.667 1.519-3.63 6.729.062 8.192l66.235 26.266a24.58 24.58 0 0017.402 0l66.234-26.266c3.693-1.463 3.73-6.673.063-8.193l-65.96-27.29a24.58 24.58 0 00-18.076 0z" fill="#FCB400"/>
+              {/* Red face */}
+              <path d="M105.312 88.46v65.617c0 3.12 3.147 5.258 6.048 4.108l73.806-28.648a4.42 4.42 0 002.79-4.108V59.813c0-3.121-3.147-5.258-6.048-4.108l-73.806 28.648a4.42 4.42 0 00-2.79 4.108z" fill="#FF6366"/>
+              {/* Teal face */}
+              <path d="M88.078 91.846v65.125c0 3.27-3.512 5.36-6.318 3.762L12.366 117.7a4.42 4.42 0 01-2.16-3.762V48.812c0-3.27 3.512-5.36 6.318-3.762l69.394 43.034a4.42 4.42 0 012.16 3.762z" fill="#18BFFF"/>
             </svg>
             <span className="text-[15px] font-semibold">Airtable</span>
           </div>
@@ -491,6 +535,7 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
           </div>
         </div>
       </main>
+      </div>
 
       {/* Create Modal */}
       {showCreateModal && (

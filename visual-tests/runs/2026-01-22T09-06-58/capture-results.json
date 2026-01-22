@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-22T09-06-58",
+  "runDir": "runs/2026-01-22T09-06-58",
+  "summary": "1/1 captured",
+  "results": [
+    {
+      "featureId": "ui-filter-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-06-58/screenshots/ui-filter-panel.png",
+      "duration": 5971
+    }
+  ]
+}

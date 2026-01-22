@@ -1,0 +1,112 @@
+🚀 Localhost Capture Run: 2026-01-22T09-07-35
+📁 Run directory: runs/2026-01-22T09-07-35
+
+📋 Features to capture: 14
+
+🔐 Checking login status...
+   Current URL: http://localhost:3000/dashboard
+
+📸 Capturing: Login Page (page-login)
+    goto: http://localhost:3000/login
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/page-login.png
+
+📸 Capturing: Home/Dashboard Page (page-home)
+    goto: http://localhost:3000/dashboard
+    wait: 2000
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/page-home.png
+
+📸 Capturing: Table View Page (page-table)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/page-table.png
+
+📸 Capturing: Filter Panel (Empty) (ui-filter-panel)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Filter")
+  ❌ Failed: page.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('button:has-text("Filter")')[22m
+
+
+📸 Capturing: Filter Panel (With Condition) (ui-filter-condition)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Filter")
+    wait: 500
+    click: button:has-text("Add condition")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-filter-condition.png
+
+📸 Capturing: Sort Panel (ui-sort-panel)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Sort")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-sort-panel.png
+
+📸 Capturing: Hide Fields Panel (ui-hide-fields-panel)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Hide fields")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-hide-fields-panel.png
+
+📸 Capturing: Group Panel (ui-group-panel)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Group")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-group-panel.png
+
+📸 Capturing: Color Panel (ui-color-panel)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Color")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-color-panel.png
+
+📸 Capturing: Column Header Menu (ui-column-menu)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    hover: .cursor-pointer >> nth=0
+  ❌ Failed: page.hover: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.cursor-pointer').first()[22m
+
+
+📸 Capturing: View Type Selector (ui-view-selector)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: button:has-text("Create...")
+    wait: 500
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-view-selector.png
+
+📸 Capturing: Record Expansion Modal (ui-record-modal)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    hover: .group:has([aria-label="Expand record"]) >> nth=0
+    wait: 500
+    click: [aria-label="Expand record"]
+    wait: 1000
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-record-modal.png
+
+📸 Capturing: Cell Selected State (ui-cell-selected)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    click: [id^="cell-"]
+    wait: 300
+  ✅ Saved: runs/2026-01-22T09-07-35/screenshots/ui-cell-selected.png
+
+📸 Capturing: Row Hover State (ui-row-hover)
+    goto: http://localhost:3000/dashboard?base=cmkp4u9e10001goc27fyxyo98&table=cmkp4xpuu0001gokpaml7v3zy&view=cmkp4xq6q001kgokp1veu091z
+    wait: 2000
+    hover: .group:has([aria-label="Expand record"]) >> nth=1
+  ❌ Failed: page.hover: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.group:has([aria-label="Expand record"])').nth(1)[22m
+
+
+═══════════════════════════════════════════════════════════════
+  CAPTURE COMPLETE: 11 succeeded, 3 failed
+═══════════════════════════════════════════════════════════════

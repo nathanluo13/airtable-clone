@@ -1,166 +1,153 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
-    output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// ============================================
-// NextAuth Models
-// ============================================
-
 model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? @db.Text
-    access_token             String? @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
+  id                       String  @id @default(cuid())
+  userId                   String
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    // Supabase Auth user id (UUID string). We intentionally don't auto-generate
-    // this so we can upsert users by their Supabase id.
-    id            String    @id
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    bases         Base[]
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
+  id            String    @id
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  bases         Base[]
+  sessions      Session[]
 
-    @@index([email])
+  @@index([email])
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
 }
 
-// ============================================
-// Airtable Clone Models
-// ============================================
-
 model Base {
-    id          String   @id @default(cuid())
-    name        String
-    description String?
-    icon        String?  // Emoji or icon identifier
-    color       String?  // Hex color
-    userId      String
-    user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    tables      Table[]
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tables      Table[]
 
-    @@index([userId])
-    @@index([userId, createdAt])
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model Table {
-    id        String   @id @default(cuid())
-    name      String
-    baseId    String
-    base      Base     @relation(fields: [baseId], references: [id], onDelete: Cascade)
-    columns   Column[]
-    rows      Row[]
-    views     View[]
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  baseId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  columns   Column[]
+  rows      Row[]
+  base      Base     @relation(fields: [baseId], references: [id], onDelete: Cascade)
+  views     View[]
 
-    @@unique([baseId, name])
-    @@index([baseId])
-}
-
-enum ColumnType {
-    TEXT
-    NUMBER
-    SINGLE_SELECT
-    MULTI_SELECT
-    DATE
-    CHECKBOX
-    URL
-    EMAIL
-    PHONE
-    CURRENCY
-    PERCENT
-    ATTACHMENT
-    LINK
+  @@unique([baseId, name])
+  @@index([baseId])
 }
 
 model Column {
-    id        String     @id @default(cuid())
-    name      String
-    type      ColumnType @default(TEXT)
-    order     Int        @default(0)
-    width     Int        @default(180)
-    isPrimary Boolean    @default(false)
-    config    Json       @default("{}") // Type-specific config (options, format, etc.)
-    tableId   String
-    table     Table      @relation(fields: [tableId], references: [id], onDelete: Cascade)
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
+  id        String     @id @default(cuid())
+  name      String
+  type      ColumnType @default(TEXT)
+  order     Int        @default(0)
+  width     Int        @default(180)
+  isPrimary Boolean    @default(false)
+  config    Json       @default("{}")
+  tableId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  table     Table      @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
-    @@unique([tableId, name])
-    @@index([tableId])
-    @@index([tableId, order])
+  @@unique([tableId, name])
+  @@index([tableId])
+  @@index([tableId, order])
 }
 
 model Row {
-    id        String   @id @default(cuid())
-    cells     Json     @default("{}") // JSONB: { "columnId": value }
-    order     Float    @default(0)    // Float for easy insertion between rows
-    tableId   String
-    table     Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  cells     Json     @default("{}")
+  order     Float    @default(0)
+  tableId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  table     Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
-    @@index([tableId])
-    @@index([tableId, order])
+  @@index([tableId])
+  @@index([tableId, order])
 }
 
 model View {
-    id            String   @id @default(cuid())
-    name          String
-    type          String   @default("grid") // grid, kanban, gallery, calendar
-    config        Json     @default("{}") // Filters, sorts, hidden columns, column widths
-    tableId       String
-    table         Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
-    isDefault     Boolean  @default(false)
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  type      String   @default("grid")
+  config    Json     @default("{}")
+  tableId   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  table     Table    @relation(fields: [tableId], references: [id], onDelete: Cascade)
 
-    @@unique([tableId, name])
-    @@index([tableId])
+  @@unique([tableId, name])
+  @@index([tableId])
+}
+
+enum ColumnType {
+  TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+  DATE
+  CHECKBOX
+  URL
+  EMAIL
+  PHONE
+  CURRENCY
+  PERCENT
+  ATTACHMENT
+  LINK
 }

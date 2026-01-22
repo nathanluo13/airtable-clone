@@ -147,7 +147,7 @@ export function DashboardClient() {
       else next.set(k, v);
     }
     const qs = next.toString();
-    router.replace(qs ? `?${qs}` : "?");
+    router.replace(`/dashboard${qs ? `?${qs}` : ""}`, { scroll: false });
   };
 
   // Don't auto-redirect - let the user stay on home page
@@ -609,7 +609,7 @@ export function DashboardClient() {
         <section className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar (36px) */}
           <div
-            className="relative flex items-center justify-between gap-3 px-3"
+            className="relative flex items-center justify-end gap-3 px-3"
             style={{
               height: 'var(--toolbar-height)',
               minHeight: 'var(--toolbar-height)',
@@ -828,7 +828,7 @@ export function DashboardClient() {
           {/* Panels (positioned below toolbar) */}
           {activePanel ? (
             <div
-              className="animate-dropdown-open absolute left-[calc(var(--sidebar-width)+12px)] z-20 mt-[calc(var(--header-height)+var(--table-tabs-height)+var(--toolbar-height)+4px)] min-w-[320px] max-w-[400px] rounded-md"
+              className="animate-dropdown-open absolute right-3 z-20 mt-[calc(var(--header-height)+var(--table-tabs-height)+var(--toolbar-height)+4px)] min-w-[320px] max-w-[400px] rounded-md"
               style={{
                 backgroundColor: 'var(--color-background-raised-popover)',
                 border: '1px solid var(--color-border-default)',
@@ -927,6 +927,11 @@ export function DashboardClient() {
                     </div>
                   </div>
 
+                  {/* "In this view, show records" text - matches Airtable */}
+                  <div className="mb-2 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                    In this view, show records
+                  </div>
+
                   <div className="space-y-2">
                     {filters.conditions.map((f, idx) => {
                       const col = columns.find((c) => c.id === f.columnId);
@@ -936,6 +941,10 @@ export function DashboardClient() {
 
                       return (
                         <div key={idx} className="flex items-center gap-2">
+                          {/* "Where" label for first condition, "And/Or" for subsequent */}
+                          <span className="w-[40px] text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                            {idx === 0 ? 'Where' : filters.conjunction === 'and' ? 'and' : 'or'}
+                          </span>
                           <select
                             value={f.columnId}
                             onChange={(e) => {
@@ -954,7 +963,7 @@ export function DashboardClient() {
                                 ),
                               }));
                             }}
-                            className="h-8 w-[200px] rounded px-2 text-sm"
+                            className="h-8 min-w-[80px] rounded px-2 text-sm"
                             style={{ border: '1px solid var(--color-border-default)' }}
                           >
                             <option value="" disabled>
@@ -978,7 +987,7 @@ export function DashboardClient() {
                                 ),
                               }));
                             }}
-                            className="h-8 w-[140px] rounded px-2 text-sm"
+                            className="h-8 min-w-[90px] rounded px-2 text-sm"
                             style={{ border: '1px solid var(--color-border-default)' }}
                           >
                             {ops.map((o) => (
@@ -995,6 +1004,7 @@ export function DashboardClient() {
                                   ? ""
                                   : String(f.value)
                               }
+                              placeholder="Enter a value"
                               onChange={(e) => {
                                 const v = e.target.value;
                                 setFilters((prev) => ({
@@ -1004,13 +1014,14 @@ export function DashboardClient() {
                                   ),
                                 }));
                               }}
-                              className="h-8 flex-1 rounded px-2 text-sm outline-none"
+                              className="h-8 min-w-[100px] flex-1 rounded px-2 text-sm outline-none"
                               style={{ border: '1px solid var(--color-border-default)' }}
                               onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
                               onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
                             />
                           ) : null}
 
+                          {/* Delete button (trash icon) */}
                           <button
                             type="button"
                             onClick={() =>
@@ -1019,76 +1030,200 @@ export function DashboardClient() {
                                 conditions: prev.conditions.filter((_, i) => i !== idx),
                               }))
                             }
-                            className="rounded px-2 py-1 text-sm transition-colors"
+                            className="rounded p-1 transition-colors"
                             style={{ color: 'var(--color-foreground-subtle)' }}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           >
-                            ✕
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M5 2V1h6v1h4v1h-1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9z"/>
+                            </svg>
+                          </button>
+                          {/* Drag handle (dots icon) */}
+                          <button
+                            type="button"
+                            className="cursor-grab rounded p-1 transition-colors"
+                            style={{ color: 'var(--color-foreground-subtle)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                              <circle cx="5" cy="3" r="1.5"/>
+                              <circle cx="11" cy="3" r="1.5"/>
+                              <circle cx="5" cy="8" r="1.5"/>
+                              <circle cx="11" cy="8" r="1.5"/>
+                              <circle cx="5" cy="13" r="1.5"/>
+                              <circle cx="11" cy="13" r="1.5"/>
+                            </svg>
                           </button>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Empty state */}
-                  {filters.conditions.length === 0 && (
-                    <div
-                      className="mb-3 flex items-center gap-2 rounded px-3 py-3"
-                      style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--color-foreground-subtle)">
-                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7v-2h2v2zm0-4H7V4h2v4z" />
-                      </svg>
-                      <span className="text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                        No filter conditions are applied
+                  {/* Default condition row when no conditions exist (like Airtable) */}
+                  {filters.conditions.length === 0 && columns.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-[40px] text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                        Where
                       </span>
+                      <select
+                        defaultValue={columns[0]?.id ?? ""}
+                        onChange={(e) => {
+                          const columnId = e.target.value;
+                          const col = columns.find((c) => c.id === columnId);
+                          setFilters((prev) => ({
+                            ...prev,
+                            conditions: [{
+                              columnId,
+                              operator: col?.type === "NUMBER" ? "gt" : "contains",
+                              value: "",
+                            }],
+                          }));
+                        }}
+                        className="h-8 min-w-[80px] rounded px-2 text-sm"
+                        style={{ border: '1px solid var(--color-border-default)' }}
+                      >
+                        {columns.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        defaultValue="contains"
+                        onChange={(e) => {
+                          const first = columns[0];
+                          if (!first) return;
+                          setFilters((prev) => ({
+                            ...prev,
+                            conditions: [{
+                              columnId: first.id,
+                              operator: e.target.value as FilterOperator,
+                              value: "",
+                            }],
+                          }));
+                        }}
+                        className="h-8 min-w-[90px] rounded px-2 text-sm"
+                        style={{ border: '1px solid var(--color-border-default)' }}
+                      >
+                        <option value="contains">contains</option>
+                        <option value="doesNotContain">does not contain</option>
+                        <option value="is">is</option>
+                        <option value="isNot">is not</option>
+                        <option value="isEmpty">is empty</option>
+                        <option value="isNotEmpty">is not empty</option>
+                      </select>
+
+                      <input
+                        placeholder="Enter a value"
+                        onChange={(e) => {
+                          const first = columns[0];
+                          if (!first) return;
+                          setFilters((prev) => ({
+                            ...prev,
+                            conditions: [{
+                              columnId: first.id,
+                              operator: "contains",
+                              value: e.target.value,
+                            }],
+                          }));
+                        }}
+                        className="h-8 min-w-[100px] flex-1 rounded px-2 text-sm outline-none"
+                        style={{ border: '1px solid var(--color-border-default)' }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
+                        onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
+                      />
+
+                      {/* Delete button (trash icon) */}
+                      <button
+                        type="button"
+                        className="rounded p-1 transition-colors"
+                        style={{ color: 'var(--color-foreground-subtle)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M5 2V1h6v1h4v1h-1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9z"/>
+                        </svg>
+                      </button>
+                      {/* Drag handle (dots icon) */}
+                      <button
+                        type="button"
+                        className="cursor-grab rounded p-1 transition-colors"
+                        style={{ color: 'var(--color-foreground-subtle)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                          <circle cx="5" cy="3" r="1.5"/>
+                          <circle cx="11" cy="3" r="1.5"/>
+                          <circle cx="5" cy="8" r="1.5"/>
+                          <circle cx="11" cy="8" r="1.5"/>
+                          <circle cx="5" cy="13" r="1.5"/>
+                          <circle cx="11" cy="13" r="1.5"/>
+                        </svg>
+                      </button>
                     </div>
                   )}
 
-                  <div className="mt-3 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const first = columns[0];
-                        if (!first) return;
-                        setFilters((prev) => ({
-                          ...prev,
-                          conditions: [
-                            ...prev.conditions,
-                            {
-                              columnId: first.id,
-                              operator: first.type === "NUMBER" ? "gt" : "contains",
-                              value: "",
-                            },
-                          ],
-                        }));
-                      }}
-                      className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                      style={{ color: 'var(--palette-blue)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      <span>Add condition</span>
-                    </button>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const first = columns[0];
+                          if (!first) return;
+                          setFilters((prev) => ({
+                            ...prev,
+                            conditions: [
+                              ...prev.conditions,
+                              {
+                                columnId: first.id,
+                                operator: first.type === "NUMBER" ? "gt" : "contains",
+                                value: "",
+                              },
+                            ],
+                          }));
+                        }}
+                        className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+                        style={{ color: 'var(--palette-teal-dark1)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        <span>Add condition</span>
+                      </button>
 
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+                        style={{ color: 'var(--color-foreground-subtle)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                        <span>Add condition group</span>
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7v-2h2v2zm0-4H7V4h2v4z" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Copy from another view link - matches Airtable */}
                     <button
                       type="button"
-                      className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+                      className="text-[13px] transition-colors"
                       style={{ color: 'var(--color-foreground-subtle)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground-default)'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-foreground-subtle)'}
                     >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      <span>Add condition group</span>
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7v-2h2v2zm0-4H7V4h2v4z" />
-                      </svg>
+                      Copy from another view
                     </button>
                   </div>
                 </div>

@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-01-22T09:09:27.955Z",
+  "run": "2026-01-22T09-07-35",
+  "summary": "0/14 passing",
+  "settings": {
+    "visualTolerance": 5,
+    "antialiasingTolerance": 5,
+    "pixelThreshold": 0.1
+  },
+  "stats": {
+    "total": 14,
+    "passed": 0,
+    "failed": 11,
+    "missing": 3,
+    "errors": 0
+  },
+  "results": [
+    {
+      "featureId": "page-login",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 12.99,
+      "pixelDiffCount": 269350,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/page-login-visual.png"
+    },
+    {
+      "featureId": "page-home",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.56,
+      "pixelDiffCount": 32364,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/page-home-visual.png"
+    },
+    {
+      "featureId": "page-table",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.53,
+      "pixelDiffCount": 73108,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/page-table-visual.png"
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.94,
+      "pixelDiffCount": 81613,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-filter-condition-visual.png"
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.45,
+      "pixelDiffCount": 29984,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-sort-panel-visual.png"
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.81,
+      "pixelDiffCount": 79057,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-hide-fields-panel-visual.png"
+    },
+    {
+      "featureId": "ui-group-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.67,
+      "pixelDiffCount": 76034,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-group-panel-visual.png"
+    },
+    {
+      "featureId": "ui-color-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.78,
+      "pixelDiffCount": 78416,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-color-panel-visual.png"
+    },
+    {
+      "featureId": "ui-column-menu",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-view-selector",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.81,
+      "pixelDiffCount": 78969,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-view-selector-visual.png"
+    },
+    {
+      "featureId": "ui-record-modal",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 48.65,
+      "pixelDiffCount": 1008769,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-record-modal-visual.png"
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.54,
+      "pixelDiffCount": 73318,
+      "diffPath": "runs/2026-01-22T09-07-35/diffs/ui-cell-selected-visual.png"
+    },
+    {
+      "featureId": "ui-row-hover",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    }
+  ],
+  "failed": [
+    "ui-record-modal",
+    "page-login",
+    "ui-filter-condition",
+    "ui-hide-fields-panel",
+    "ui-view-selector",
+    "ui-color-panel",
+    "ui-group-panel",
+    "ui-cell-selected",
+    "page-table",
+    "page-home",
+    "ui-sort-panel"
+  ],
+  "nextPriority": "ui-record-modal"
+}

@@ -1,0 +1,109 @@
+
+
+🔬 Visual Regression Comparison
+📁 Run: 2026-01-22T09-01-57
+📁 Run directory: runs/2026-01-22T09-01-57
+
+🔍 Comparing: Login Page (page-login)
+    Visual match: ❌ FAIL
+    Pixel diff: 13.04% (270356 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/page-login-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/page-login-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Home/Dashboard Page (page-home)
+    Visual match: ❌ FAIL
+    Pixel diff: 2.05% (42464 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/page-home-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/page-home-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Table View Page (page-table)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.66% (75799 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/page-table-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/page-table-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Filter Panel (Empty) (ui-filter-panel)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.69% (76415 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-filter-panel-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-filter-panel-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Filter Panel (With Condition) (ui-filter-condition)
+    Visual match: ❌ FAIL
+    Pixel diff: 1.63% (33711 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-filter-condition-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-filter-condition-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Sort Panel (ui-sort-panel)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.68% (76298 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-sort-panel-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-sort-panel-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Hide Fields Panel (ui-hide-fields-panel)
+    ⚠️  Current not found: runs/2026-01-22T09-01-57/screenshots/ui-hide-fields-panel.png
+
+🔍 Comparing: Group Panel (ui-group-panel)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.66% (75960 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-group-panel-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-group-panel-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Color Panel (ui-color-panel)
+    ⚠️  Current not found: runs/2026-01-22T09-01-57/screenshots/ui-color-panel.png
+
+🔍 Comparing: Column Header Menu (ui-column-menu)
+    ⚠️  Current not found: runs/2026-01-22T09-01-57/screenshots/ui-column-menu.png
+
+🔍 Comparing: View Type Selector (ui-view-selector)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.96% (82171 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-view-selector-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-view-selector-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Record Expansion Modal (ui-record-modal)
+    ⚠️  Current not found: runs/2026-01-22T09-01-57/screenshots/ui-record-modal.png
+
+🔍 Comparing: Cell Selected State (ui-cell-selected)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.65% (75676 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-cell-selected-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-cell-selected-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Row Hover State (ui-row-hover)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.63% (75190 pixels)
+    Visual diff saved: runs/2026-01-22T09-01-57/diffs/ui-row-hover-visual.png
+    Pixel diff saved: runs/2026-01-22T09-01-57/diffs/ui-row-hover-pixel.png
+    Status: ❌ FAIL
+
+═══════════════════════════════════════════════════════════════
+  COMPARISON COMPLETE
+  ✅ Passed: 0
+  ❌ Failed: 10
+  ⚠️  Missing: 4
+  💥 Errors: 0
+═══════════════════════════════════════════════════════════════
+
+Failed features (by severity):
+  1. page-login (13.0% pixel diff)
+  2. ui-view-selector (4.0% pixel diff)
+  3. ui-filter-panel (3.7% pixel diff)
+  4. ui-sort-panel (3.7% pixel diff)
+  5. ui-group-panel (3.7% pixel diff)
+  6. page-table (3.7% pixel diff)
+  7. ui-cell-selected (3.6% pixel diff)
+  8. ui-row-hover (3.6% pixel diff)
+  9. page-home (2.0% pixel diff)
+  10. ui-filter-condition (1.6% pixel diff)
+
+📄 Results saved to: runs/2026-01-22T09-01-57/results.json

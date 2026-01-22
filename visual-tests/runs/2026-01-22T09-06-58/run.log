@@ -1,0 +1,25 @@
+
+
+🔬 Visual Regression Comparison
+📁 Run: 2026-01-22T09-06-58
+📁 Run directory: runs/2026-01-22T09-06-58
+
+🔍 Comparing: Filter Panel (Empty) (ui-filter-panel)
+    Visual match: ❌ FAIL
+    Pixel diff: 3.96% (82082 pixels)
+    Visual diff saved: runs/2026-01-22T09-06-58/diffs/ui-filter-panel-visual.png
+    Pixel diff saved: runs/2026-01-22T09-06-58/diffs/ui-filter-panel-pixel.png
+    Status: ❌ FAIL
+
+═══════════════════════════════════════════════════════════════
+  COMPARISON COMPLETE
+  ✅ Passed: 0
+  ❌ Failed: 1
+  ⚠️  Missing: 0
+  💥 Errors: 0
+═══════════════════════════════════════════════════════════════
+
+Failed features (by severity):
+  1. ui-filter-panel (4.0% pixel diff)
+
+📄 Results saved to: runs/2026-01-22T09-06-58/results.json

@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-22T09-07-35",
+  "runDir": "runs/2026-01-22T09-07-35",
+  "summary": "11/14 captured",
+  "results": [
+    {
+      "featureId": "page-login",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/page-login.png",
+      "duration": 2676
+    },
+    {
+      "featureId": "page-home",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/page-home.png",
+      "duration": 4525
+    },
+    {
+      "featureId": "page-table",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/page-table.png",
+      "duration": 4407
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Filter\")')\u001b[22m\n",
+      "duration": 13859
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-filter-condition.png",
+      "duration": 5938
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-sort-panel.png",
+      "duration": 6315
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-hide-fields-panel.png",
+      "duration": 5169
+    },
+    {
+      "featureId": "ui-group-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-group-panel.png",
+      "duration": 5437
+    },
+    {
+      "featureId": "ui-color-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-color-panel.png",
+      "duration": 5595
+    },
+    {
+      "featureId": "ui-column-menu",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.cursor-pointer').first()\u001b[22m\n",
+      "duration": 14121
+    },
+    {
+      "featureId": "ui-view-selector",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-view-selector.png",
+      "duration": 5489
+    },
+    {
+      "featureId": "ui-record-modal",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-record-modal.png",
+      "duration": 6402
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T09-07-35/screenshots/ui-cell-selected.png",
+      "duration": 5312
+    },
+    {
+      "featureId": "ui-row-hover",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.group:has([aria-label=\"Expand record\"])').nth(1)\u001b[22m\n",
+      "duration": 14138
+    }
+  ]
+}
