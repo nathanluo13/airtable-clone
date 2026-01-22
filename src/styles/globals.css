@@ -153,13 +153,13 @@
   --cell-height-extra-tall: 120px;
   --column-width-default: 180px;
   --column-width-min: 100px;
-  --row-number-width: 44px;
+  --row-number-width: 66px;
 
   /* ========== LAYOUT SIZES ========== */
   --header-height: 57px;
   --table-tabs-height: 32px;
   --toolbar-height: 36px;
-  --sidebar-width: 264px;
+  --sidebar-width: 280px;
 
   /* ========== ELEVATION/SHADOWS ========== */
   --elevation-low: 0px 0px 1px 0px rgba(0, 0, 0, 0.32), 0px 0px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 3px 0px rgba(0, 0, 0, 0.08);

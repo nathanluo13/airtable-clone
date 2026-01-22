@@ -42,8 +42,8 @@ export const SELECTOR_MAP: Record<string, string> = {
   '.cell.header.primary': '.cursor-pointer >> nth=0',
   '[data-tutorial-selector-id="openColumnMenuButton"]': '.cursor-pointer >> nth=0',
 
-  // View selector - localhost button says "Create..." not "Create new"
-  'button:has-text("Create new")': 'button:has-text("Create...")',
+  // View selector - keep the same label on localhost
+  'button:has-text("Create new")': 'button:has-text("Create new")',
 
   // Record modal - expand button has aria-label="Expand record"
   // For hover: target the group container that contains the expand button

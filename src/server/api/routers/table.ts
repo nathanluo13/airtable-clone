@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import { faker } from "@faker-js/faker";
 import { z } from "zod";
 
 import { Prisma } from "../../../../generated/prisma";
@@ -101,20 +100,13 @@ export const tableRouter = createTRPCRouter({
       const notesCol = columns.find((c) => c.order === 1);
       const valueCol = columns.find((c) => c.order === 2);
 
-      // Default rows
-      const DEFAULT_ROWS = 50;
-      const rows = Array.from({ length: DEFAULT_ROWS }, (_, i) => {
-        const cells: Record<string, unknown> = {};
-        if (primaryCol) cells[primaryCol.id] = faker.person.fullName();
-        if (notesCol) cells[notesCol.id] = faker.lorem.sentence();
-        if (valueCol) cells[valueCol.id] = faker.number.int({ min: 0, max: 10000 });
-
-        return {
-          tableId: table.id,
-          order: i + 1,
-          cells: cells as Prisma.InputJsonValue,
-        };
-      });
+      // Default rows (match Airtable's minimal starter table)
+      const DEFAULT_ROWS = 3;
+      const rows = Array.from({ length: DEFAULT_ROWS }, (_, i) => ({
+        tableId: table.id,
+        order: i + 1,
+        cells: {} as Prisma.InputJsonValue,
+      }));
 
       await ctx.db.row.createMany({ data: rows });
 
@@ -131,7 +123,7 @@ export const tableRouter = createTRPCRouter({
           config: {
             search: null,
             filters: { conjunction: "and", conditions: [] },
-            sorts: [],
+            sorts: primaryCol ? [{ columnId: primaryCol.id, direction: "asc" }] : [],
             columnVisibility,
             rowHeight: "short",
           },

@@ -10,6 +10,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { api } from "~/trpc/react";
+import { Icon } from "~/components/ui/icon";
 
 type GridColumn = {
   id: string;
@@ -498,6 +499,18 @@ export function AirtableGrid(props: {
     },
   });
 
+  const addRow = api.row.addRow.useMutation({
+    onSuccess: async () => {
+      await utils.row.infinite.invalidate(queryInput);
+      await utils.row.count.invalidate({
+        tableId,
+        search,
+        filters,
+        viewId: viewId ?? undefined,
+      });
+    },
+  });
+
   const height = rowHeightPx[rowHeight] ?? 32;
 
   const moveFrom = (start: FocusedCell, deltaRow: number, deltaCol: number) => {
@@ -611,110 +624,135 @@ export function AirtableGrid(props: {
   };
 
   const columnDefs = useMemo<ColumnDef<RowData>[]>(() => {
-    // Checkbox column
-    const checkbox: ColumnDef<RowData> = {
-      id: "__checkbox",
+    // Combined row number column with select-all in header (like Airtable)
+    const rowNumWithSelect: ColumnDef<RowData> = {
+      id: "__rownum",
       header: () => (
         <div
-          className="flex h-full items-center justify-center"
-          style={{ backgroundColor: 'var(--cell-background-leftPane-header)' }}
+          className="flex h-full w-full items-center justify-center"
+          style={{
+            backgroundColor: 'white',
+            borderRight: '1px solid var(--color-border-cell)'
+          }}
         >
           <input
             type="checkbox"
             checked={allSelected}
             onChange={toggleAllSelection}
-            className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300"
+            className="h-4 w-4 cursor-pointer rounded border-gray-300"
             style={{ accentColor: 'var(--palette-blue)' }}
           />
         </div>
       ),
+      cell: ({ row }: any) => {
+        const isSelected = selectedRows.has(row.original.id);
+        const hasAnySelected = selectedRows.size > 0;
+        return (
+          <div
+            className="group relative flex h-full w-full items-center justify-end pr-2 text-[11px]"
+            style={{
+              color: 'var(--palette-gray-500)',
+              backgroundColor: 'white',
+              borderRight: '1px solid var(--color-border-cell)'
+            }}
+          >
+            {/* Checkbox - shown when any row is selected or on hover */}
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => toggleRowSelection(row.original.id)}
+              className={
+                "absolute left-1/2 -translate-x-1/2 h-4 w-4 cursor-pointer rounded border-gray-300 transition-opacity " +
+                (hasAnySelected || isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100")
+              }
+              style={{ accentColor: 'var(--palette-blue)' }}
+            />
+            {/* Row number - hidden when any row is selected or on hover */}
+            <span
+              className={
+                "transition-opacity " +
+                (hasAnySelected ? "opacity-0" : "group-hover:opacity-0")
+              }
+            >
+              {row.index + 1}
+            </span>
+          </div>
+        );
+      },
+      size: 66,
+      enableResizing: false,
+    };
+
+    // Expand button column - separate white button on hover
+    const expandCol: ColumnDef<RowData> = {
+      id: "__expand",
+      header: () => (
+        <div
+          className="flex h-full w-full items-center justify-center"
+          style={{
+            backgroundColor: 'white',
+            borderRight: '1px solid var(--color-border-cell)'
+          }}
+        />
+      ),
       cell: ({ row }: any) => (
         <div
-          className="flex h-full items-center justify-center"
-          style={{ backgroundColor: 'var(--cell-background-leftPane-header)' }}
+          className="group flex h-full w-full items-center justify-center"
+          style={{
+            backgroundColor: 'white',
+            borderRight: '1px solid var(--color-border-cell)'
+          }}
         >
-          <input
-            type="checkbox"
-            checked={selectedRows.has(row.original.id)}
-            onChange={() => toggleRowSelection(row.original.id)}
-            className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300"
-            style={{ accentColor: 'var(--palette-blue)' }}
-          />
+          <button
+            type="button"
+            onClick={() => expandRecord(row.original.id)}
+            className="flex h-5 w-5 items-center justify-center rounded opacity-0 transition-all group-hover:opacity-100"
+            style={{
+              backgroundColor: 'white',
+              boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
+              color: 'var(--palette-gray-500)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.1)';
+            }}
+            aria-label="Expand record"
+          >
+            <Icon name="ArrowsOutSimple" size={12} />
+          </button>
         </div>
       ),
       size: 32,
       enableResizing: false,
     };
 
-    // Row number column
-    const rowNum: ColumnDef<RowData> = {
-      id: "__rownum",
-      header: () => (
-        <div
-          className="flex h-full items-center justify-center"
-          style={{ backgroundColor: 'var(--cell-background-leftPane-header)' }}
-        />
-      ),
-      cell: ({ row }: any) => (
-        <div
-          className="group flex h-full items-center justify-between px-1 text-[12px]"
-          style={{ color: 'var(--palette-gray-500)', backgroundColor: 'var(--cell-background-leftPane-header)' }}
-        >
-          {/* Expand button - shown on hover */}
-          <button
-            type="button"
-            onClick={() => expandRecord(row.original.id)}
-            className="rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            style={{ color: 'var(--color-foreground-subtle)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            aria-label="Expand record"
-          >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 2h5v2H4v3H2V2zm12 0h-5v2h3v3h2V2zM2 14h5v-2H4v-3H2v5zm12 0h-5v-2h3v-3h2v5z" />
-            </svg>
-          </button>
-          <span className="pr-1">{row.index + 1}</span>
-        </div>
-      ),
-      size: 44,
-      enableResizing: false,
-    };
-
     const defs: ColumnDef<RowData>[] = [
-      checkbox,
-      rowNum,
+      rowNumWithSelect,
+      expandCol,
       ...columns.map((col) => ({
         id: col.id,
         accessorFn: (row: RowData) => row.cells[col.id],
         header: () => (
           <div
             className="group relative flex h-full w-full cursor-pointer items-center gap-2 truncate px-2 text-[13px] font-normal"
-            style={{ color: 'var(--color-foreground-default)', backgroundColor: 'var(--cell-background-header)' }}
+            style={{ color: 'var(--color-foreground-default)', backgroundColor: 'white' }}
             onClick={() => setColumnMenuId(columnMenuId === col.id ? null : col.id)}
           >
             {/* Field type icon */}
-            {col.type === "NUMBER" ? (
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--color-foreground-subtle)">
-                <path d="M5 2v3H3v2h2v6h2V7h2v6h2V7h2V5h-2V2H9v3H7V2H5zm2 5h2v-2H7v2z" />
-              </svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--color-foreground-subtle)">
-                <path d="M2 3h12v2H8.5v8h-2V5H2V3z" />
-              </svg>
-            )}
+            <Icon
+              name={col.type === "NUMBER" ? "HashStraight" : "TextAlt"}
+              size={14}
+              className="text-[var(--color-foreground-subtle)]"
+            />
             <span className="truncate">{col.name}</span>
             {/* Dropdown indicator */}
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              className="ml-auto opacity-0 group-hover:opacity-100"
-              style={{ color: 'var(--color-foreground-subtle)' }}
-            >
-              <path d="M4 6l4 4 4-4H4z" />
-            </svg>
+            <Icon
+              name="ChevronDownSmall"
+              size={12}
+              className="ml-auto opacity-0 group-hover:opacity-100 text-[var(--color-foreground-subtle)]"
+            />
 
             {/* Column Header Menu */}
             {columnMenuId === col.id && (
@@ -760,7 +798,7 @@ export function AirtableGrid(props: {
       header: () => (
         <div
           className="flex h-full items-center justify-center"
-          style={{ backgroundColor: 'var(--cell-background-header)' }}
+          style={{ backgroundColor: 'white' }}
         >
           <button
             type="button"
@@ -770,9 +808,7 @@ export function AirtableGrid(props: {
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             aria-label="Add column"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" fill="none" />
-            </svg>
+            <Icon name="Plus" size={16} />
           </button>
         </div>
       ),
@@ -946,7 +982,7 @@ export function AirtableGrid(props: {
             className="sticky top-0 z-10"
             style={{
               height,
-              backgroundColor: 'var(--cell-background-header)',
+              backgroundColor: 'white',
               borderBottom: '1px solid var(--color-border-cell-bottom)'
             }}
           >
@@ -1013,7 +1049,7 @@ export function AirtableGrid(props: {
               return (
                 <div
                   key={virtualRow.key}
-                  className="flex transition-colors"
+                  className="group flex transition-colors"
                   style={{
                     position: "absolute",
                     top: 0,
@@ -1082,13 +1118,13 @@ export function AirtableGrid(props: {
           type="button"
           className="flex items-center justify-center rounded p-1 transition-colors"
           style={{ color: 'var(--color-foreground-subtle)' }}
+          disabled={addRow.isPending}
+          onClick={() => addRow.mutate({ tableId })}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           aria-label="Add row"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          <Icon name="Plus" size={16} />
         </button>
 
         {/* Scissors/Add button */}
@@ -1099,9 +1135,7 @@ export function AirtableGrid(props: {
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M6 4a2 2 0 11-4 0 2 2 0 014 0zM6 12a2 2 0 11-4 0 2 2 0 014 0zM5.5 6l8-4M5.5 10l8 4" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          </svg>
+          <Icon name="Scissors" size={14} />
           <span>Add...</span>
         </button>
 

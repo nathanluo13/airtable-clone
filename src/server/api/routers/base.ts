@@ -13,6 +13,8 @@ export const baseRouter = createTRPCRouter({
       select: {
         id: true,
         name: true,
+        icon: true,
+        color: true,
         createdAt: true,
         updatedAt: true,
         tables: {
@@ -50,6 +52,8 @@ export const baseRouter = createTRPCRouter({
       return ctx.db.base.create({
         data: {
           name: input.name,
+          icon: "GearsBaseIcon",
+          color: "var(--palette-green)",
           userId: ctx.dbUser.id,
         },
       });

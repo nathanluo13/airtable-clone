@@ -7,6 +7,8 @@ import { api } from "~/trpc/react";
 import { AirtableGrid } from "~/components/airtable/airtable-grid";
 import { Header } from "~/components/airtable/header";
 import { HomePage } from "~/components/airtable/home-page";
+import { AppRail } from "~/components/airtable/app-rail";
+import { Icon } from "~/components/ui/icon";
 
 type FilterOperator =
   | "contains"
@@ -131,7 +133,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
   const viewParam = searchParams.get("view");
 
   const [activePanel, setActivePanel] = useState<
-    null | "hide" | "filter" | "group" | "sort" | "color" | "rowHeight"
+    null | "hide" | "filter" | "group" | "sort" | "color" | "rowHeight" | "tools"
   >(null);
 
   const basesQuery = api.base.list.useQuery(undefined, {
@@ -204,6 +206,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
   const [sorts, setSorts] = useState<Sort[]>([]);
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({});
   const [rowHeight, setRowHeight] = useState<ViewConfig["rowHeight"]>("short");
+  const [toolbarSearchOpen, setToolbarSearchOpen] = useState(false);
+  const toolbarSearchRef = useRef<HTMLInputElement>(null);
 
   // Initialize local state from the selected view config.
   useEffect(() => {
@@ -335,37 +339,58 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
     );
   }
 
-  const currentBaseName = bases.find((b) => b.id === baseId)?.name ?? "Untitled Base";
+  const currentBase = bases.find((b) => b.id === baseId);
+  const currentBaseName = currentBase?.name ?? "Untitled Base";
+  const baseColor = currentBase?.color ?? null;
+  const baseIcon = currentBase?.icon ?? null;
+  const baseTint = "var(--palette-green-light3)";
 
   return (
     <main
-      className="flex h-screen flex-col text-[13px]"
+      className="flex h-screen text-[13px]"
       style={{ backgroundColor: 'var(--color-background-default)', color: 'var(--color-foreground-default)' }}
     >
-      {/* Header (57px) - Full Width */}
-      <Header baseName={currentBaseName} userName={userName} userEmail={userEmail} />
+      {/* App Rail (44px) - Full Height */}
+      <AppRail
+        userName={userName}
+        userEmail={userEmail}
+        onHomeClick={() => setParams({ base: null, table: null, view: null })}
+      />
 
-      {/* Table Tabs Bar (32px) - Full Width */}
+      {/* Main Content Area */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header (57px) - Full Width - White background */}
+        <Header
+        baseName={currentBaseName}
+        baseColor={baseColor ?? "var(--palette-green)"}
+        baseIcon={baseIcon}
+      />
+
+      {/* Table Selector Bar (32px) - Full Width */}
       <div
-        className="flex items-center justify-between px-3"
+        className="flex items-center justify-between pr-3"
         style={{
           height: 'var(--table-tabs-height)',
           minHeight: 'var(--table-tabs-height)',
-          backgroundColor: 'var(--palette-neutral-lightGray1)',
+          backgroundColor: baseTint,
           borderBottom: '1px solid var(--color-border-default)'
         }}
       >
-        <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+        {/* Left side: Table tabs + dropdown + Add or import */}
+        <div className="flex items-end gap-0 h-full">
+          {/* Table Tabs */}
           {tables.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setParams({ table: t.id, view: null })}
-              className="rounded-t px-3 py-1.5 text-[13px] transition-colors"
+              className="flex items-center gap-1.5 px-3 text-[13px] transition-colors rounded-t-md"
               style={{
                 backgroundColor: t.id === tableId ? 'var(--color-background-default)' : 'transparent',
-                borderTop: t.id === tableId ? '2px solid var(--palette-teal-dusty)' : '2px solid transparent',
-                marginTop: t.id === tableId ? '2px' : '0',
+                color: 'var(--color-foreground-default)',
+                fontWeight: t.id === tableId ? 500 : 400,
+                height: 'calc(100% + 1px)',
+                marginBottom: '-1px',
               }}
               onMouseEnter={(e) => {
                 if (t.id !== tableId) e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
@@ -374,77 +399,240 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                 if (t.id !== tableId) e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              {t.name}
+              <span>{t.name}</span>
+              {t.id === tableId && (
+                <Icon name="ChevronDownSmall" size={14} className="text-[var(--color-foreground-subtle)]" />
+              )}
             </button>
           ))}
+
+          {/* More tables dropdown - just an icon, no hover */}
+          <div
+            className="flex items-center self-center px-1 cursor-pointer"
+            style={{ color: 'var(--color-foreground-default)' }}
+          >
+            <Icon name="ChevronDownSmall" size={18} />
+          </div>
+
+          {/* Add or import - centered, hover makes text bold */}
           <button
             type="button"
-            disabled={!baseId || createTable.isPending}
-            onClick={() => {
-              if (!baseId) return;
-              const name = window.prompt("Table name?");
-              if (!name) return;
-              createTable.mutate({ baseId, name });
-            }}
-            className="rounded px-2 py-1 text-[13px] transition-colors disabled:opacity-50"
-            style={{ color: 'var(--palette-blue)' }}
+            className="flex items-center gap-1 self-center px-2 text-[13px] ml-1"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.fontWeight = '600'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.fontWeight = '400'; }}
+          >
+            <Icon name="Plus" size={14} />
+            <span>Add or import</span>
+          </button>
+        </div>
+
+        {/* Right side: Tools only */}
+        <button
+          type="button"
+          className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+          style={{
+            backgroundColor: activePanel === 'tools' ? 'var(--color-background-selected-blue)' : 'transparent',
+            color: activePanel === 'tools' ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)',
+          }}
+          onMouseEnter={(e) => {
+            if (activePanel !== 'tools') e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
+          }}
+          onMouseLeave={(e) => {
+            if (activePanel !== 'tools') e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+          onClick={() => setActivePanel((p) => (p === 'tools' ? null : 'tools'))}
+        >
+          <span>Tools</span>
+          <Icon name="ChevronDownSmall" size={14} className="opacity-60" />
+        </button>
+      </div>
+
+      {/* Toolbar (36px) - Full Width */}
+      <div
+        className="relative flex items-center justify-between gap-3 px-3"
+        style={{
+          height: 'var(--toolbar-height)',
+          minHeight: 'var(--toolbar-height)',
+          backgroundColor: 'var(--color-background-default)',
+          borderBottom: '1px solid var(--color-border-default)'
+        }}
+      >
+        {/* Left side: View selector */}
+        <div className="flex items-center gap-2">
+          {/* Collapse Sidebar Button */}
+          <button
+            type="button"
+            className="rounded p-1.5 transition-colors"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            aria-label="Toggle sidebar"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2 3h12v2H2V3zm0 4h12v2H2V7zm0 4h8v2H2v-2z" />
+            </svg>
+          </button>
+
+          {/* View Type Dropdown */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded px-2 py-1.5 text-[13px] font-medium transition-colors"
+            style={{ color: 'var(--color-foreground-default)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            +
+            <Icon name="GridFeature" size={14} className="text-[var(--palette-blue)]" />
+            <span>{views.find((v) => v.id === viewId)?.name ?? "Grid view"}</span>
+            <Icon name="ChevronDownSmall" size={14} className="text-[var(--color-foreground-subtle)]" />
+          </button>
+        </div>
+
+        {/* Right side: Filters */}
+        <div className="flex items-center gap-1">
+          {/* Hide fields */}
+          <button
+            type="button"
+            onClick={() => setActivePanel((p) => (p === "hide" ? null : "hide"))}
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{
+              backgroundColor: activePanel === "hide" ? 'var(--color-background-selected-blue)' : 'transparent',
+              color: activePanel === "hide" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+            }}
+            onMouseEnter={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <Icon name="EyeSlash" size={14} />
+            <span>Hide fields</span>
+          </button>
+
+          {/* Filter */}
+          <button
+            type="button"
+            onClick={() => setActivePanel((p) => (p === "filter" ? null : "filter"))}
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{
+              backgroundColor: filters.conditions.length > 0 ? 'var(--palette-green-light3)' : activePanel === "filter" ? 'var(--color-background-selected-blue)' : 'transparent',
+              color: filters.conditions.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "filter" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+            }}
+            onMouseEnter={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <Icon name="FunnelSimple" size={14} />
+            <span>{filters.conditions.length > 0 ? `${filters.conditions.length} filter${filters.conditions.length > 1 ? 's' : ''}` : 'Filter'}</span>
+          </button>
+
+          {/* Group */}
+          <button
+            type="button"
+            onClick={() => setActivePanel((p) => (p === "group" ? null : "group"))}
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{
+              backgroundColor: activePanel === "group" ? 'var(--color-background-selected-blue)' : 'transparent',
+              color: activePanel === "group" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+            }}
+            onMouseEnter={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <Icon name="Group" size={14} />
+            <span>Group</span>
+          </button>
+
+          {/* Sort */}
+          <button
+            type="button"
+            onClick={() => setActivePanel((p) => (p === "sort" ? null : "sort"))}
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{
+              backgroundColor: sorts.length > 0 ? 'var(--palette-green-light3)' : activePanel === "sort" ? 'var(--color-background-selected-blue)' : 'transparent',
+              color: sorts.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "sort" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+            }}
+            onMouseEnter={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <Icon name="ArrowsDownUp" size={14} />
+            <span>{sorts.length > 0 ? `Sorted by ${sorts.length} field${sorts.length > 1 ? 's' : ''}` : 'Sort'}</span>
+          </button>
+
+          {/* Color */}
+          <button
+            type="button"
+            onClick={() => setActivePanel((p) => (p === "color" ? null : "color"))}
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{
+              backgroundColor: activePanel === "color" ? 'var(--color-background-selected-blue)' : 'transparent',
+              color: activePanel === "color" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+            }}
+            onMouseEnter={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'transparent'; }}
+          >
+            <Icon name="Palette" size={14} />
+            <span>Color</span>
+          </button>
+
+          <div className="mx-1 h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+
+          {/* Share and sync */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Icon name="Share" size={14} />
+            <span>Share and sync</span>
+          </button>
+
+          {/* Search */}
+          {toolbarSearchOpen ? (
+            <div className="relative ml-2">
+              <Icon name="MagnifyingGlass" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-foreground-subtle)]" />
+              <input
+                ref={toolbarSearchRef}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search"
+                className="h-8 w-[180px] rounded pl-8 pr-3 text-[13px] outline-none transition-colors"
+                style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--palette-blue)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border-default)')}
+              />
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            className="rounded p-1.5 transition-colors"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            aria-label="Search"
+            onClick={() => {
+              setToolbarSearchOpen((open) => {
+                const next = !open;
+                if (next) setTimeout(() => toolbarSearchRef.current?.focus(), 0);
+                return next;
+              });
+            }}
+          >
+            <Icon name="MagnifyingGlass" size={14} />
           </button>
         </div>
       </div>
 
       {/* Main Content: Sidebar | Grid Container */}
       <div className="flex min-h-0 flex-1">
-        {/* Sidebar (264px) */}
+        {/* Sidebar */}
         <aside
           className="flex flex-col overflow-hidden"
           style={{
             width: 'var(--sidebar-width)',
             minWidth: 'var(--sidebar-width)',
-            backgroundColor: 'var(--palette-neutral-lightGray1)',
+            backgroundColor: 'var(--color-background-default)',
             borderRight: '1px solid var(--color-border-default)'
           }}
         >
-          {/* View Toolbar */}
-          <div
-            className="flex items-center gap-2 px-3 py-2"
-            style={{ borderBottom: '1px solid var(--color-border-default)' }}
-          >
-            {/* Collapse Sidebar Button */}
-            <button
-              type="button"
-              className="rounded p-1.5 transition-colors"
-              style={{ color: 'var(--color-foreground-subtle)' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              aria-label="Close sidebar"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M2 3h12v2H2V3zm0 4h12v2H2V7zm0 4h8v2H2v-2z" />
-              </svg>
-            </button>
-
-            {/* View Type Dropdown */}
-            <button
-              type="button"
-              className="flex flex-1 items-center gap-1.5 rounded px-2 py-1.5 text-[13px] font-medium transition-colors"
-              style={{ color: 'var(--color-foreground-default)' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-              </svg>
-              <span>Grid view</span>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" className="ml-auto">
-                <path d="M4 6l4 4 4-4H4z" />
-              </svg>
-            </button>
-          </div>
-
           {/* Create New + Search + Options */}
           <div className="px-3 py-2">
             {/* Create New Button */}
@@ -457,34 +645,28 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                 if (!name) return;
                 createView.mutate({ tableId, name });
               }}
-              className="flex w-full items-center gap-2 rounded px-2 py-2 text-[13px] transition-colors disabled:opacity-50"
+              className="flex h-8 w-full items-center gap-2 rounded px-2 text-[13px] transition-colors disabled:opacity-50"
               style={{ color: 'var(--color-foreground-default)' }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M8 2v12M2 8h12" stroke="var(--palette-blue)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              <span>Create...</span>
+              <Icon name="Plus" size={14} className="text-[var(--palette-blue)]" />
+              <span>Create new...</span>
             </button>
 
             {/* Find a view search + Options row */}
             <div className="mt-2 flex items-center gap-2">
               <div className="relative flex-1">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="var(--color-foreground-subtle)"
-                  className="absolute left-2 top-1/2 -translate-y-1/2"
-                >
-                  <path d="M11.5 11.5L14 14M6.5 11a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                </svg>
+                <Icon
+                  name="MagnifyingGlass"
+                  size={14}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--color-foreground-subtle)]"
+                />
                 <input
                   value={viewSearch}
                   onChange={(e) => setViewSearch(e.target.value)}
                   placeholder="Find a view"
-                  className="h-7 w-full rounded pl-7 pr-2 text-[13px] outline-none transition-colors"
+                  className="h-8 w-full rounded pl-8 pr-2 text-[13px] outline-none transition-colors"
                   style={{
                     backgroundColor: 'var(--color-background-default)',
                     border: '1px solid var(--color-border-default)'
@@ -499,11 +681,9 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                 style={{ color: 'var(--color-foreground-subtle)' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                aria-label="View list options"
+                aria-label="View list settings"
               >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M3 9.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                </svg>
+                <Icon name="Cog" size={14} />
               </button>
             </div>
           </div>
@@ -512,328 +692,45 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
           <div className="flex-1 overflow-y-auto px-2">
             {views
               .filter(v => !viewSearch || v.name.toLowerCase().includes(viewSearch.toLowerCase()))
-              .map((v) => (
-              <div
-                key={v.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setParams({ view: v.id })}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setParams({ view: v.id }); }}
-                className="group flex w-full items-center gap-2 rounded px-2 py-2 text-left text-[13px] transition-colors cursor-pointer"
-                style={{
-                  backgroundColor: v.id === viewId ? 'var(--color-background-selected-blue)' : 'transparent',
-                  color: v.id === viewId ? 'var(--palette-blue)' : 'var(--color-foreground-default)'
-                }}
-                onMouseEnter={(e) => {
-                  if (v.id !== viewId) e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (v.id !== viewId) e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
-                  <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-                </svg>
-                <span className="flex-1 truncate">{v.name}</span>
+              .map((v) => {
+                const type = String((v as any).type ?? "grid").toLowerCase();
+                const isActive = v.id === viewId;
+                const iconName =
+                  type === "gallery" ? "GalleryFeature" : type === "group" ? "Group" : "GridFeature";
+                const iconColor = type === "gallery" ? "text-[var(--palette-purple)]" : "text-[var(--palette-blue)]";
 
-                {/* Hover buttons - Menu and Settings */}
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); }}
-                    className="rounded p-1 transition-colors"
-                    style={{ color: 'var(--color-foreground-subtle)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    aria-label="View menu"
+                return (
+                  <div
+                    key={v.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setParams({ view: v.id })}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setParams({ view: v.id });
+                    }}
+                    className="flex w-full items-center gap-2 rounded px-2 py-2 text-left text-[13px] transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: isActive ? 'var(--color-background-selected)' : 'transparent',
+                      color: 'var(--color-foreground-default)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M4 6l4 4 4-4H4z" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); }}
-                    className="rounded p-1 transition-colors"
-                    style={{ color: 'var(--color-foreground-subtle)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    aria-label="View settings"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 10a2 2 0 100-4 2 2 0 000 4zm6-2c0-.3 0-.6-.1-.9l1.6-1.2-1.5-2.6-1.9.5c-.4-.4-.9-.7-1.4-.9L10 1H7l-.7 1.9c-.5.2-1 .5-1.4.9l-1.9-.5-1.5 2.6 1.6 1.2c-.1.3-.1.6-.1.9s0 .6.1.9L1.5 10.1l1.5 2.6 1.9-.5c.4.4.9.7 1.4.9L7 15h3l.7-1.9c.5-.2 1-.5 1.4-.9l1.9.5 1.5-2.6-1.6-1.2c.1-.3.1-.6.1-.9z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+                    <Icon name={iconName} size={14} className={`shrink-0 ${iconColor}`} />
+                    <span className="flex-1 truncate">{v.name}</span>
+                  </div>
+                );
+              })}
           </div>
 
-          {/* Sidebar Footer */}
-          <div
-            className="flex items-center justify-between px-3 py-2"
-            style={{ borderTop: '1px solid var(--color-border-default)' }}
-          >
-            <div className="flex items-center gap-1">
-              {/* Help Button */}
-              <button
-                type="button"
-                className="rounded p-2 transition-colors"
-                style={{ color: 'var(--color-foreground-subtle)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                aria-label="Help"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 12a1 1 0 110-2 1 1 0 010 2zm1-4.5V9H7v-.5a2.5 2.5 0 112.5-2.5H8a1 1 0 100-2 1 1 0 00-1 1H5.5a2.5 2.5 0 015 0c0 .88-.46 1.7-1.2 2.16-.26.16-.3.24-.3.34z" />
-                </svg>
-              </button>
-
-              {/* Notifications Button */}
-              <button
-                type="button"
-                className="rounded p-2 transition-colors"
-                style={{ color: 'var(--color-foreground-subtle)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                aria-label="Notifications"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 14c1.1 0 2-.9 2-2H6c0 1.1.9 2 2 2zm5-3V7c0-2.5-1.7-4.6-4-5.2V1c0-.6-.4-1-1-1s-1 .4-1 1v.8C4.7 2.4 3 4.5 3 7v4l-1 1v1h12v-1l-1-1z" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1">
-              {updateViewConfig.isPending ? (
-                <span className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Saving…</span>
-              ) : (
-                <span className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Saved</span>
-              )}
-            </div>
-          </div>
         </aside>
 
         {/* Grid Container */}
         <section className="flex min-w-0 flex-1 flex-col">
-          {/* Toolbar (36px) */}
-          <div
-            className="relative flex items-center justify-end gap-3 px-3"
-            style={{
-              height: 'var(--toolbar-height)',
-              minHeight: 'var(--toolbar-height)',
-              backgroundColor: 'var(--color-background-default)',
-              borderBottom: '1px solid var(--color-border-default)'
-            }}
-          >
-            <div className="flex items-center gap-1">
-              {/* Hide fields */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "hide" ? null : "hide"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: activePanel === "hide" ? 'var(--color-background-selected-blue)' : 'transparent',
-                  color: activePanel === "hide" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 4C3 4 1 8 1 8s2 4 7 4 7-4 7-4-2-4-7-4zm0 6a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-                <span>Hide fields</span>
-              </button>
-
-              {/* Filter */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "filter" ? null : "filter"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: filters.conditions.length > 0
-                    ? 'var(--palette-green-light3)'
-                    : activePanel === "filter"
-                      ? 'var(--color-background-selected-blue)'
-                      : 'transparent',
-                  color: filters.conditions.length > 0
-                    ? 'var(--palette-green-dark1)'
-                    : activePanel === "filter"
-                      ? 'var(--palette-blue)'
-                      : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M2 3h12l-5 6v5l-2 1V9L2 3z" />
-                </svg>
-                <span>{filters.conditions.length > 0 ? `${filters.conditions.length} filter${filters.conditions.length > 1 ? 's' : ''}` : 'Filter'}</span>
-              </button>
-
-              {/* Group */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "group" ? null : "group"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: activePanel === "group" ? 'var(--color-background-selected-blue)' : 'transparent',
-                  color: activePanel === "group" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 2h6v3H1V2zm0 5h6v3H1V7zm0 5h6v3H1v-3zm8-10h6v3H9V2zm0 5h6v3H9V7zm0 5h6v3H9v-3z" />
-                </svg>
-                <span>Group</span>
-              </button>
-
-              {/* Sort */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "sort" ? null : "sort"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: sorts.length > 0
-                    ? 'var(--palette-green-light3)'
-                    : activePanel === "sort"
-                      ? 'var(--color-background-selected-blue)'
-                      : 'transparent',
-                  color: sorts.length > 0
-                    ? 'var(--palette-green-dark1)'
-                    : activePanel === "sort"
-                      ? 'var(--palette-blue)'
-                      : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M4 1v14l-3-3h6l-3 3V1H4zm7 4h4l-2-3-2 3zm0 2v8h4V7h-4z" />
-                </svg>
-                <span>{sorts.length > 0 ? `Sorted by ${sorts.length} field${sorts.length > 1 ? 's' : ''}` : 'Sort'}</span>
-              </button>
-
-              {/* Color */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "color" ? null : "color"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: activePanel === "color" ? 'var(--color-background-selected-blue)' : 'transparent',
-                  color: activePanel === "color" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M13 1l-9 9 3 3 9-9-3-3zM3 11l-2 4 4-2-2-2z" />
-                </svg>
-                <span>Color</span>
-              </button>
-
-              {/* Row Height */}
-              <button
-                type="button"
-                onClick={() =>
-                  setActivePanel((p) => (p === "rowHeight" ? null : "rowHeight"))
-                }
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{
-                  backgroundColor: activePanel === "rowHeight" ? 'var(--color-background-selected-blue)' : 'transparent',
-                  color: activePanel === "rowHeight" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-                }}
-                onMouseEnter={(e) => {
-                  if (activePanel !== "rowHeight") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                }}
-                onMouseLeave={(e) => {
-                  if (activePanel !== "rowHeight") e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-                </svg>
-              </button>
-
-              <div
-                className="mx-1 h-4 w-px"
-                style={{ backgroundColor: 'var(--color-border-default)' }}
-              />
-
-              {/* Share and sync */}
-              <button
-                type="button"
-                className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                style={{ color: 'var(--color-foreground-subtle)' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M12 4a2 2 0 11-4 0 2 2 0 014 0zm-6 8a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM7 5l-3 5m8 0L9 5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                </svg>
-                <span>Share and sync</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Search */}
-              <div className="relative">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="var(--color-foreground-subtle)"
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2"
-                >
-                  <path d="M11.5 11.5L14 14M6.5 11a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                </svg>
-                <input
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Search"
-                  className="h-7 w-[180px] rounded pl-8 pr-3 text-[13px] outline-none transition-colors"
-                  style={{
-                    border: '1px solid var(--color-border-default)',
-                    backgroundColor: 'var(--color-background-default)'
-                  }}
-                  onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
-                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Panels (positioned below toolbar) */}
           {activePanel ? (
             <div
@@ -1352,6 +1249,27 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                 </div>
               ) : null}
 
+              {activePanel === "tools" ? (
+                <div className="p-3">
+                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>
+                    Tools
+                  </div>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setActivePanel("rowHeight")}
+                      className="flex w-full items-center justify-between rounded px-3 py-2 text-[13px] transition-colors"
+                      style={{ color: 'var(--color-foreground-default)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      <span>Row height</span>
+                      <Icon name="ChevronRight" size={14} className="text-[var(--color-foreground-subtle)]" />
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               {activePanel === "rowHeight" ? (
                 <div className="p-3">
                   <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Row height</div>
@@ -1394,7 +1312,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
           {/* Grid */}
           <div
             className="min-h-0 flex-1"
-            style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
+            style={{ backgroundColor: 'var(--color-background-default)' }}
           >
             {tableQuery.isLoading || tablesQuery.isLoading ? (
               <div
@@ -1442,6 +1360,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
             )}
           </div>
         </section>
+      </div>
       </div>
     </main>
   );
