@@ -131,11 +131,11 @@ async function interactiveExplore(page: Page, context: BrowserContext, profile: 
       switch (cmd) {
         case 'capture': {
           const [id, ...nameParts] = args;
-          const name = nameParts.join(' ') || id;
           if (!id) {
             console.log('Usage: capture <id> <name>');
             break;
           }
+          const name = nameParts.join(' ') || id;
           await captureFeature(page, profile, id, name, [...clickHistory]);
           break;
         }

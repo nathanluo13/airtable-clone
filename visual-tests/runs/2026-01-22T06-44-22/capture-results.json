@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-22T06-44-22",
+  "runDir": "runs/2026-01-22T06-44-22",
+  "summary": "7/14 captured",
+  "results": [
+    {
+      "featureId": "page-login",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/page-login.png",
+      "duration": 2223
+    },
+    {
+      "featureId": "page-home",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/page-home.png",
+      "duration": 4786
+    },
+    {
+      "featureId": "page-table",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/page-table.png",
+      "duration": 4580
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').locator('text=\"Filter\"')\u001b[22m\n",
+      "duration": 20630
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/ui-filter-condition.png",
+      "duration": 5966
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/ui-sort-panel.png",
+      "duration": 4911
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/ui-hide-fields-panel.png",
+      "duration": 5032
+    },
+    {
+      "featureId": "ui-group-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-44-22/screenshots/ui-group-panel.png",
+      "duration": 5121
+    },
+    {
+      "featureId": "ui-color-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button').locator('text=\"Color\"')\u001b[22m\n",
+      "duration": 13991
+    },
+    {
+      "featureId": "ui-column-menu",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.cursor-pointer').first()\u001b[22m\n",
+      "duration": 13981
+    },
+    {
+      "featureId": "ui-view-selector",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create...\")')\u001b[22m\n",
+      "duration": 13999
+    },
+    {
+      "featureId": "ui-record-modal",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.group:has([aria-label=\"Expand record\"])').first()\u001b[22m\n",
+      "duration": 14633
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[id^=\"cell-\"]')\u001b[22m\n",
+      "duration": 14615
+    },
+    {
+      "featureId": "ui-row-hover",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.group:has([aria-label=\"Expand record\"])').nth(1)\u001b[22m\n",
+      "duration": 14501
+    }
+  ]
+}

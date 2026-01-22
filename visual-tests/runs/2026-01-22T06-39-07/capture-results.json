@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-22T06-39-07",
+  "runDir": "runs/2026-01-22T06-39-07",
+  "summary": "4/14 captured",
+  "results": [
+    {
+      "featureId": "page-login",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-39-07/screenshots/page-login.png",
+      "duration": 2718
+    },
+    {
+      "featureId": "page-home",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-39-07/screenshots/page-home.png",
+      "duration": 4999
+    },
+    {
+      "featureId": "page-table",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-39-07/screenshots/page-table.png",
+      "duration": 4568
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Filter\"):not(:has-text(\"filters\"))')\u001b[22m\n",
+      "duration": 14175
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Filter\"):not(:has-text(\"filters\"))')\u001b[22m\n",
+      "duration": 14042
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T06-39-07/screenshots/ui-sort-panel.png",
+      "duration": 5377
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Hide fields\")')\u001b[22m\n",
+      "duration": 14612
+    },
+    {
+      "featureId": "ui-group-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Group\")')\u001b[22m\n",
+      "duration": 14776
+    },
+    {
+      "featureId": "ui-color-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Color\")')\u001b[22m\n",
+      "duration": 14628
+    },
+    {
+      "featureId": "ui-column-menu",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div.group.cursor-pointer').first()\u001b[22m\n",
+      "duration": 14314
+    },
+    {
+      "featureId": "ui-view-selector",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create...\")')\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\" navigation to finish...\u001b[22m\n",
+      "duration": 15298
+    },
+    {
+      "featureId": "ui-record-modal",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[aria-label=\"Expand record\"]').locator('xpath=ancestor::div[contains(@class, \"flex\")][contains(@class, \"transition-colors\")]')\u001b[22m\n",
+      "duration": 14531
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[id^=\"cell-\"]')\u001b[22m\n",
+      "duration": 14365
+    },
+    {
+      "featureId": "ui-row-hover",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div.flex.transition-colors').nth(1)\u001b[22m\n",
+      "duration": 14205
+    }
+  ]
+}

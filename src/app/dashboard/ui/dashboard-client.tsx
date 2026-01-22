@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "~/trpc/react";
 import { AirtableGrid } from "~/components/airtable/airtable-grid";
 import { Header } from "~/components/airtable/header";
+import { HomePage } from "~/components/airtable/home-page";
 
 type FilterOperator =
   | "contains"
@@ -133,9 +134,10 @@ export function DashboardClient() {
   });
   const bases = basesQuery.data ?? [];
 
+  // Only use baseId if explicitly set in URL params
   const baseId = useMemo(() => {
     if (baseParam && bases.some((b) => b.id === baseParam)) return baseParam;
-    return bases[0]?.id ?? null;
+    return null; // Don't auto-select first base - show home page instead
   }, [baseParam, bases]);
 
   const setParams = (patch: Record<string, string | null | undefined>) => {
@@ -148,13 +150,7 @@ export function DashboardClient() {
     router.replace(qs ? `?${qs}` : "?");
   };
 
-  useEffect(() => {
-    if (!baseId) return;
-    if (baseParam !== baseId) {
-      setParams({ base: baseId, table: null, view: null });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseId]);
+  // Don't auto-redirect - let the user stay on home page
 
   const tablesQuery = api.table.listByBase.useQuery(
     { baseId: baseId ?? "" },
@@ -317,6 +313,18 @@ export function DashboardClient() {
       >
         Loading…
       </main>
+    );
+  }
+
+  // Show home page when no base is selected
+  if (!baseId) {
+    return (
+      <HomePage
+        bases={bases}
+        onSelectBase={(id) => setParams({ base: id, table: null, view: null })}
+        onCreateBase={(name) => createBase.mutate({ name })}
+        isCreating={createBase.isPending}
+      />
     );
   }
 
@@ -1253,10 +1261,29 @@ export function DashboardClient() {
               </div>
             ) : !tableId ? (
               <div
-                className="flex h-full items-center justify-center text-[13px]"
+                className="flex h-full flex-col items-center justify-center gap-4 text-[13px]"
                 style={{ color: 'var(--color-foreground-subtle)' }}
               >
-                Create a table to get started.
+                <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" className="opacity-40">
+                  <path d="M1 2h14v2H1V2zm0 4h14v2H1V6zm0 4h14v2H1v-2zm0 4h14v2H1v-2z" />
+                </svg>
+                <p>No tables yet</p>
+                <button
+                  type="button"
+                  disabled={!baseId || createTable.isPending}
+                  onClick={() => {
+                    if (!baseId) return;
+                    const name = window.prompt("Table name?");
+                    if (!name) return;
+                    createTable.mutate({ baseId, name });
+                  }}
+                  className="rounded-md px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--palette-blue)', color: 'white' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--palette-blue-dark1)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--palette-blue)')}
+                >
+                  {createTable.isPending ? 'Creating...' : 'Create your first table'}
+                </button>
               </div>
             ) : (
               <AirtableGrid

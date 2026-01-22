@@ -1,0 +1,79 @@
+
+
+🔬 Visual Regression Comparison
+📁 Run: 2026-01-22T06-39-07
+📁 Run directory: runs/2026-01-22T06-39-07
+
+🔍 Comparing: Login Page (page-login)
+    Visual match: ❌ FAIL
+    Pixel diff: 89.30% (1851729 pixels)
+    Visual diff saved: runs/2026-01-22T06-39-07/diffs/page-login-visual.png
+    Pixel diff saved: runs/2026-01-22T06-39-07/diffs/page-login-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Home/Dashboard Page (page-home)
+    Visual match: ❌ FAIL
+    Pixel diff: 1.81% (37429 pixels)
+    Visual diff saved: runs/2026-01-22T06-39-07/diffs/page-home-visual.png
+    Pixel diff saved: runs/2026-01-22T06-39-07/diffs/page-home-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Table View Page (page-table)
+    Visual match: ❌ FAIL
+    Pixel diff: 1.03% (21404 pixels)
+    Visual diff saved: runs/2026-01-22T06-39-07/diffs/page-table-visual.png
+    Pixel diff saved: runs/2026-01-22T06-39-07/diffs/page-table-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Filter Panel (Empty) (ui-filter-panel)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-filter-panel.png
+
+🔍 Comparing: Filter Panel (With Condition) (ui-filter-condition)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-filter-condition.png
+
+🔍 Comparing: Sort Panel (ui-sort-panel)
+    Visual match: ❌ FAIL
+    Pixel diff: 1.25% (25890 pixels)
+    Visual diff saved: runs/2026-01-22T06-39-07/diffs/ui-sort-panel-visual.png
+    Pixel diff saved: runs/2026-01-22T06-39-07/diffs/ui-sort-panel-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Hide Fields Panel (ui-hide-fields-panel)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-hide-fields-panel.png
+
+🔍 Comparing: Group Panel (ui-group-panel)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-group-panel.png
+
+🔍 Comparing: Color Panel (ui-color-panel)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-color-panel.png
+
+🔍 Comparing: Column Header Menu (ui-column-menu)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-column-menu.png
+
+🔍 Comparing: View Type Selector (ui-view-selector)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-view-selector.png
+
+🔍 Comparing: Record Expansion Modal (ui-record-modal)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-record-modal.png
+
+🔍 Comparing: Cell Selected State (ui-cell-selected)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-cell-selected.png
+
+🔍 Comparing: Row Hover State (ui-row-hover)
+    ⚠️  Current not found: runs/2026-01-22T06-39-07/screenshots/ui-row-hover.png
+
+═══════════════════════════════════════════════════════════════
+  COMPARISON COMPLETE
+  ✅ Passed: 0
+  ❌ Failed: 4
+  ⚠️  Missing: 10
+  💥 Errors: 0
+═══════════════════════════════════════════════════════════════
+
+Failed features (by severity):
+  1. page-login (89.3% pixel diff)
+  2. page-home (1.8% pixel diff)
+  3. ui-sort-panel (1.2% pixel diff)
+  4. page-table (1.0% pixel diff)
+
+📄 Results saved to: runs/2026-01-22T06-39-07/results.json
