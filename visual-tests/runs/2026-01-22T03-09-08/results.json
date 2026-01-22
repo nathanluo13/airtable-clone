@@ -1,0 +1,135 @@
+{
+  "timestamp": "2026-01-22T03:14:30.598Z",
+  "run": "2026-01-22T03-09-08",
+  "summary": "0/14 passing",
+  "settings": {
+    "visualTolerance": 5,
+    "antialiasingTolerance": 5,
+    "pixelThreshold": 0.1
+  },
+  "stats": {
+    "total": 14,
+    "passed": 0,
+    "failed": 1,
+    "missing": 13,
+    "errors": 0
+  },
+  "results": [
+    {
+      "featureId": "page-login",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 89.3,
+      "pixelDiffCount": 1851796,
+      "diffPath": "runs/2026-01-22T03-09-08/diffs/page-login-visual.png"
+    },
+    {
+      "featureId": "page-home",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "page-table",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-group-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-color-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-column-menu",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-view-selector",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-record-modal",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-row-hover",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    }
+  ],
+  "failed": [
+    "page-login"
+  ],
+  "nextPriority": "page-login"
+}

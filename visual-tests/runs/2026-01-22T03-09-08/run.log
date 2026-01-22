@@ -1,0 +1,64 @@
+
+
+🔬 Visual Regression Comparison
+📁 Run: 2026-01-22T03-09-08
+📁 Run directory: runs/2026-01-22T03-09-08
+
+🔍 Comparing: Login Page (page-login)
+    Visual match: ❌ FAIL
+    Pixel diff: 89.30% (1851796 pixels)
+    Visual diff saved: runs/2026-01-22T03-09-08/diffs/page-login-visual.png
+    Pixel diff saved: runs/2026-01-22T03-09-08/diffs/page-login-pixel.png
+    Status: ❌ FAIL
+
+🔍 Comparing: Home/Dashboard Page (page-home)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/page-home.png
+
+🔍 Comparing: Table View Page (page-table)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/page-table.png
+
+🔍 Comparing: Filter Panel (Empty) (ui-filter-panel)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-filter-panel.png
+
+🔍 Comparing: Filter Panel (With Condition) (ui-filter-condition)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-filter-condition.png
+
+🔍 Comparing: Sort Panel (ui-sort-panel)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-sort-panel.png
+
+🔍 Comparing: Hide Fields Panel (ui-hide-fields-panel)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-hide-fields-panel.png
+
+🔍 Comparing: Group Panel (ui-group-panel)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-group-panel.png
+
+🔍 Comparing: Color Panel (ui-color-panel)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-color-panel.png
+
+🔍 Comparing: Column Header Menu (ui-column-menu)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-column-menu.png
+
+🔍 Comparing: View Type Selector (ui-view-selector)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-view-selector.png
+
+🔍 Comparing: Record Expansion Modal (ui-record-modal)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-record-modal.png
+
+🔍 Comparing: Cell Selected State (ui-cell-selected)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-cell-selected.png
+
+🔍 Comparing: Row Hover State (ui-row-hover)
+    ⚠️  Current not found: runs/2026-01-22T03-09-08/screenshots/ui-row-hover.png
+
+═══════════════════════════════════════════════════════════════
+  COMPARISON COMPLETE
+  ✅ Passed: 0
+  ❌ Failed: 1
+  ⚠️  Missing: 13
+  💥 Errors: 0
+═══════════════════════════════════════════════════════════════
+
+Failed features (by severity):
+  1. page-login (89.3% pixel diff)
+
+📄 Results saved to: runs/2026-01-22T03-09-08/results.json

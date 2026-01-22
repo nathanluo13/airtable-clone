@@ -1,0 +1,141 @@
+{
+  "timestamp": "2026-01-22T03:32:46.561Z",
+  "run": "2026-01-22T03-30-17",
+  "summary": "0/14 passing",
+  "settings": {
+    "visualTolerance": 5,
+    "antialiasingTolerance": 5,
+    "pixelThreshold": 0.1
+  },
+  "stats": {
+    "total": 14,
+    "passed": 0,
+    "failed": 7,
+    "missing": 7,
+    "errors": 0
+  },
+  "results": [
+    {
+      "featureId": "page-login",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 89.3,
+      "pixelDiffCount": 1851798,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/page-login-visual.png"
+    },
+    {
+      "featureId": "page-home",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.81,
+      "pixelDiffCount": 37443,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/page-home-visual.png"
+    },
+    {
+      "featureId": "page-table",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.21,
+      "pixelDiffCount": 25072,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/page-table-visual.png"
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.4,
+      "pixelDiffCount": 28953,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/ui-filter-panel-visual.png"
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.25,
+      "pixelDiffCount": 25889,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/ui-sort-panel-visual.png"
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.31,
+      "pixelDiffCount": 27192,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/ui-hide-fields-panel-visual.png"
+    },
+    {
+      "featureId": "ui-group-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.2,
+      "pixelDiffCount": 24835,
+      "diffPath": "runs/2026-01-22T03-30-17/diffs/ui-group-panel-visual.png"
+    },
+    {
+      "featureId": "ui-color-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-column-menu",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-view-selector",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-record-modal",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-row-hover",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    }
+  ],
+  "failed": [
+    "page-login",
+    "page-home",
+    "ui-filter-panel",
+    "ui-hide-fields-panel",
+    "ui-sort-panel",
+    "page-table",
+    "ui-group-panel"
+  ],
+  "nextPriority": "page-login"
+}

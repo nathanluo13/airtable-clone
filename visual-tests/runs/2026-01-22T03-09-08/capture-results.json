@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-22T03-09-08",
+  "runDir": "runs/2026-01-22T03-09-08",
+  "summary": "1/14 captured",
+  "results": [
+    {
+      "featureId": "page-login",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-09-08/screenshots/page-login.png",
+      "duration": 1612
+    },
+    {
+      "featureId": "page-home",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30006
+    },
+    {
+      "featureId": "page-table",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30006
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-label=\"Filter rows\"], button:has-text(\"Filter\")')\u001b[22m\n",
+      "duration": 12844
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-label=\"Filter rows\"], button:has-text(\"Filter\")')\u001b[22m\n",
+      "duration": 19024
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30016
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30004
+    },
+    {
+      "featureId": "ui-group-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-label=\"Group rows\"], button:has-text(\"Group\")')\u001b[22m\n",
+      "duration": 18474
+    },
+    {
+      "featureId": "ui-color-panel",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30003
+    },
+    {
+      "featureId": "ui-column-menu",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30002
+    },
+    {
+      "featureId": "ui-view-selector",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30002
+    },
+    {
+      "featureId": "ui-record-modal",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.dataRow:first-child, tr:nth-child(2), [role=\"row\"]:nth-child(2)')\u001b[22m\n",
+      "duration": 13368
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.data-row .cell, tr td, [role=\"gridcell\"]')\u001b[22m\n",
+      "duration": 13199
+    },
+    {
+      "featureId": "ui-row-hover",
+      "success": false,
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\", waiting until \"networkidle\"\u001b[22m\n",
+      "duration": 30002
+    }
+  ]
+}

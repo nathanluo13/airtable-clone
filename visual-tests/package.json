@@ -6,18 +6,29 @@
   "scripts": {
     "setup:login": "tsx scripts/setup-session.ts logged-in",
     "setup:logout": "tsx scripts/setup-session.ts logged-out",
+    "setup:localhost": "tsx scripts/setup-localhost-profile.ts",
     "explore": "tsx scripts/explore-airtable.ts",
     "capture": "tsx scripts/capture-reference.ts",
-    "test:visual": "tsx scripts/run-comparison.ts"
+    "capture:localhost": "tsx scripts/capture-localhost.ts",
+    "compare": "tsx scripts/run-comparison.ts",
+    "test:visual": "tsx scripts/agent-runner.ts"
   },
-  "keywords": ["visual-regression", "playwright", "airtable"],
+  "keywords": [
+    "visual-regression",
+    "playwright",
+    "airtable"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.18.3",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@types/node": "^25.0.10",
+    "@types/pngjs": "^6.0.5",
+    "looks-same": "^10.0.1",
+    "pixelmatch": "^7.1.0",
     "playwright": "^1.57.0",
+    "pngjs": "^7.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

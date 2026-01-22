@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-01-22T03-30-17",
+  "runDir": "runs/2026-01-22T03-30-17",
+  "summary": "7/14 captured",
+  "results": [
+    {
+      "featureId": "page-login",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/page-login.png",
+      "duration": 2107
+    },
+    {
+      "featureId": "page-home",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/page-home.png",
+      "duration": 4491
+    },
+    {
+      "featureId": "page-table",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/page-table.png",
+      "duration": 4561
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/ui-filter-panel.png",
+      "duration": 5533
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-label=\"Filter rows\"], button:has-text(\"Filter\")')\u001b[22m\n\u001b[2m    - waiting for\" http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda\" navigation to finish...\u001b[22m\n",
+      "duration": 15484
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/ui-sort-panel.png",
+      "duration": 4976
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/ui-hide-fields-panel.png",
+      "duration": 5120
+    },
+    {
+      "featureId": "ui-group-panel",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-30-17/screenshots/ui-group-panel.png",
+      "duration": 4787
+    },
+    {
+      "featureId": "ui-color-panel",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-label=\"Row colors\"], button:has-text(\"Color\")')\u001b[22m\n",
+      "duration": 13766
+    },
+    {
+      "featureId": "ui-column-menu",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.cell.header, th:first-of-type, [data-column-header]')\u001b[22m\n",
+      "duration": 14734
+    },
+    {
+      "featureId": "ui-view-selector",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create\"), button:has-text(\"Add view\")')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" class=\"flex w-full items-center gap-2 rounded px-2 py-2 text-[13px] transition-colors disabled:opacity-50\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "duration": 13890
+    },
+    {
+      "featureId": "ui-record-modal",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.dataRow:first-child, tr:nth-child(2), [role=\"row\"]:nth-child(2)')\u001b[22m\n",
+      "duration": 14295
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "success": false,
+      "error": "page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.data-row .cell, tr td, [role=\"gridcell\"]')\u001b[22m\n",
+      "duration": 14846
+    },
+    {
+      "featureId": "ui-row-hover",
+      "success": false,
+      "error": "page.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.data-row:nth-of-type(2), tr:nth-child(3)')\u001b[22m\n",
+      "duration": 15528
+    }
+  ]
+}

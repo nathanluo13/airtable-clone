@@ -1,0 +1,13 @@
+🚀 Localhost Capture Run: 2026-01-22T03-14-50
+📁 Run directory: runs/2026-01-22T03-14-50
+
+📋 Features to capture: 1
+
+📸 Capturing: Home/Dashboard Page (page-home)
+    goto: http://localhost:3000/dashboard
+    wait: 2000
+  ✅ Saved: runs/2026-01-22T03-14-50/screenshots/page-home.png
+
+═══════════════════════════════════════════════════════════════
+  CAPTURE COMPLETE: 1 succeeded, 0 failed
+═══════════════════════════════════════════════════════════════

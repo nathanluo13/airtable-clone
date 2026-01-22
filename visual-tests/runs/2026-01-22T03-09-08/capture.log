@@ -1,0 +1,113 @@
+🚀 Localhost Capture Run: 2026-01-22T03-09-08
+📁 Run directory: runs/2026-01-22T03-09-08
+
+📋 Features to capture: 14
+
+📸 Capturing: Login Page (page-login)
+    goto: http://localhost:3000/login
+  ✅ Saved: runs/2026-01-22T03-09-08/screenshots/page-login.png
+
+📸 Capturing: Home/Dashboard Page (page-home)
+    goto: http://localhost:3000/dashboard
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard", waiting until "networkidle"[22m
+
+
+📸 Capturing: Table View Page (page-table)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: Filter Panel (Empty) (ui-filter-panel)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+    wait: 2000
+    click: [aria-label="Filter rows"], button:has-text("Filter")
+  ❌ Failed: page.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[aria-label="Filter rows"], button:has-text("Filter")')[22m
+
+
+📸 Capturing: Filter Panel (With Condition) (ui-filter-condition)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+    wait: 2000
+    click: [aria-label="Filter rows"], button:has-text("Filter")
+  ❌ Failed: page.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[aria-label="Filter rows"], button:has-text("Filter")')[22m
+
+
+📸 Capturing: Sort Panel (ui-sort-panel)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: Hide Fields Panel (ui-hide-fields-panel)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: Group Panel (ui-group-panel)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+    wait: 2000
+    click: [aria-label="Group rows"], button:has-text("Group")
+  ❌ Failed: page.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[aria-label="Group rows"], button:has-text("Group")')[22m
+
+
+📸 Capturing: Color Panel (ui-color-panel)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: Column Header Menu (ui-column-menu)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: View Type Selector (ui-view-selector)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+📸 Capturing: Record Expansion Modal (ui-record-modal)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+    wait: 2000
+    hover: .dataRow:first-child, tr:nth-child(2), [role="row"]:nth-child(2)
+  ❌ Failed: page.hover: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.dataRow:first-child, tr:nth-child(2), [role="row"]:nth-child(2)')[22m
+
+
+📸 Capturing: Cell Selected State (ui-cell-selected)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+    wait: 2000
+    click: .data-row .cell, tr td, [role="gridcell"]
+  ❌ Failed: page.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('.data-row .cell, tr td, [role="gridcell"]')[22m
+
+
+📸 Capturing: Row Hover State (ui-row-hover)
+    goto: http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda
+  ❌ Failed: page.goto: Timeout 30000ms exceeded.
+Call log:
+[2m  - navigating to "http://localhost:3000/dashboard?base=cmkoh4rbz0001gobn2zr3pg3j&table=cmkoh51hg0003gobnfbhstfvq&view=cmkoh51t3001mgobno2gyvmda", waiting until "networkidle"[22m
+
+
+═══════════════════════════════════════════════════════════════
+  CAPTURE COMPLETE: 1 succeeded, 13 failed
+═══════════════════════════════════════════════════════════════

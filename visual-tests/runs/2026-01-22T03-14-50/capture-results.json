@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-01-22T03-14-50",
+  "runDir": "runs/2026-01-22T03-14-50",
+  "summary": "1/1 captured",
+  "results": [
+    {
+      "featureId": "page-home",
+      "success": true,
+      "screenshotPath": "runs/2026-01-22T03-14-50/screenshots/page-home.png",
+      "duration": 4918
+    }
+  ]
+}
