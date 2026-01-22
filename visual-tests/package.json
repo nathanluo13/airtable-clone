@@ -1,0 +1,24 @@
+{
+  "name": "visual-tests",
+  "version": "1.0.0",
+  "description": "Visual regression testing for Airtable clone",
+  "type": "module",
+  "scripts": {
+    "setup:login": "tsx scripts/setup-session.ts logged-in",
+    "setup:logout": "tsx scripts/setup-session.ts logged-out",
+    "explore": "tsx scripts/explore-airtable.ts",
+    "capture": "tsx scripts/capture-reference.ts",
+    "test:visual": "tsx scripts/run-comparison.ts"
+  },
+  "keywords": ["visual-regression", "playwright", "airtable"],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.10",
+    "playwright": "^1.57.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

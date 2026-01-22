@@ -1,0 +1,22 @@
+# Browser profiles (contain session cookies/auth data)
+profiles/
+
+# Screenshot outputs
+reference/
+current/
+diffs/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local

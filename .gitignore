@@ -44,3 +44,9 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# visual-tests (sensitive session data)
+visual-tests/profiles/
+visual-tests/reference/
+visual-tests/current/
+visual-tests/diffs/
