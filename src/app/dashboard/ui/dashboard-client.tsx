@@ -209,9 +209,19 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
   const [toolbarSearchOpen, setToolbarSearchOpen] = useState(false);
   const toolbarSearchRef = useRef<HTMLInputElement>(null);
 
+  // Track viewId to reset auto-save flag when view changes.
+  const prevViewIdRef = useRef(viewId);
+
   // Initialize local state from the selected view config.
   useEffect(() => {
     if (!columns.length) return;
+
+    // Reset auto-save flag when view changes to prevent saving stale state
+    if (prevViewIdRef.current !== viewId) {
+      autoSaveRef.current = false;
+      prevViewIdRef.current = viewId;
+    }
+
     const columnIds = columns.map((c) => c.id);
     const view = views.find((v) => v.id === viewId);
     const normalized = normalizeViewConfig(view?.config, columnIds);
@@ -421,6 +431,13 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
             style={{ color: 'var(--color-foreground-subtle)' }}
             onMouseEnter={(e) => { e.currentTarget.style.fontWeight = '600'; }}
             onMouseLeave={(e) => { e.currentTarget.style.fontWeight = '400'; }}
+            disabled={!baseId || createTable.isPending}
+            onClick={() => {
+              if (!baseId) return;
+              const name = window.prompt("Table name?", "New Table");
+              if (!name) return;
+              createTable.mutate({ baseId, name });
+            }}
           >
             <Icon name="Plus" size={14} />
             <span>Add or import</span>
@@ -559,7 +576,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                         <div className="relative h-4 w-7 shrink-0 rounded-full transition-colors" style={{ backgroundColor: isVisible ? 'var(--palette-teal-dusty)' : 'var(--palette-gray-300)' }}>
                           <div className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all" style={{ left: isVisible ? '14px' : '2px' }} />
                         </div>
-                        <Icon name={c.type === "NUMBER" ? "Hash" : "TextAa"} size={14} className="shrink-0 text-[var(--color-foreground-subtle)]" />
+                        <Icon name={c.type === "NUMBER" ? "HashStraight" : "TextAa"} size={14} className="shrink-0 text-[var(--color-foreground-subtle)]" />
                         <span className="flex-1 truncate text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>{c.name}</span>
                       </div>
                     );
@@ -733,54 +750,82 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                 </div>
 
                 {/* Default condition row when no conditions exist */}
-                {filters.conditions.length === 0 && columns.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                      Where
-                    </span>
-                    <select
-                      defaultValue={columns[0]?.id ?? ""}
-                      onChange={(e) => {
-                        const columnId = e.target.value;
-                        const col = columns.find((c) => c.id === columnId);
-                        setFilters((prev) => ({
-                          ...prev,
-                          conditions: [{
-                            columnId,
-                            operator: col?.type === "NUMBER" ? "gt" : "contains",
-                            value: "",
-                          }],
-                        }));
-                      }}
-                      className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
-                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                    >
-                      {columns.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
+                {filters.conditions.length === 0 && columns.length > 0 && (() => {
+                  const firstCol = columns[0];
+                  const defaultOps = firstCol?.type === "NUMBER"
+                    ? [{ value: "gt", label: ">" }, { value: "lt", label: "<" }, { value: "equals", label: "=" }, { value: "isEmpty", label: "is empty" }, { value: "isNotEmpty", label: "is not empty" }]
+                    : [{ value: "contains", label: "contains" }, { value: "notContains", label: "does not contain" }, { value: "equals", label: "is" }, { value: "isEmpty", label: "is empty" }, { value: "isNotEmpty", label: "is not empty" }];
 
-                    <select
-                      defaultValue="contains"
-                      className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                    >
-                      <option value="contains">contains</option>
-                      <option value="notContains">does not contain</option>
-                      <option value="equals">is</option>
-                      <option value="isEmpty">is empty</option>
-                      <option value="isNotEmpty">is not empty</option>
-                    </select>
+                  const createFilter = (columnId: string, operator: string, value: string) => {
+                    setFilters((prev) => ({
+                      ...prev,
+                      conditions: [{ columnId, operator: operator as FilterOperator, value }],
+                    }));
+                  };
 
-                    <input
-                      placeholder="Enter a value"
-                      className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
-                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                      onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
-                      onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
-                    />
-                  </div>
-                )}
+                  return (
+                    <div className="flex items-center gap-2">
+                      <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                        Where
+                      </span>
+                      <select
+                        data-filter-col
+                        defaultValue={firstCol?.id ?? ""}
+                        onChange={(e) => {
+                          const columnId = e.target.value;
+                          const col = columns.find((c) => c.id === columnId);
+                          const opSelect = e.target.parentElement?.querySelector('select[data-filter-op]') as HTMLSelectElement | null;
+                          const valInput = e.target.parentElement?.querySelector('input[data-filter-val]') as HTMLInputElement | null;
+                          const operator = opSelect?.value ?? (col?.type === "NUMBER" ? "gt" : "contains");
+                          const value = valInput?.value ?? "";
+                          createFilter(columnId, operator, value);
+                        }}
+                        className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                      >
+                        {columns.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        data-filter-op
+                        defaultValue={firstCol?.type === "NUMBER" ? "gt" : "contains"}
+                        onChange={(e) => {
+                          const operator = e.target.value;
+                          const colSelect = e.target.parentElement?.querySelector('select[data-filter-col]') as HTMLSelectElement | null;
+                          const valInput = e.target.parentElement?.querySelector('input[data-filter-val]') as HTMLInputElement | null;
+                          const columnId = colSelect?.value ?? firstCol?.id ?? "";
+                          const value = valInput?.value ?? "";
+                          if (columnId) createFilter(columnId, operator, value);
+                        }}
+                        className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                      >
+                        {defaultOps.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+
+                      <input
+                        data-filter-val
+                        placeholder="Enter a value"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const colSelect = e.target.parentElement?.querySelector('select[data-filter-col]') as HTMLSelectElement | null;
+                          const opSelect = e.target.parentElement?.querySelector('select[data-filter-op]') as HTMLSelectElement | null;
+                          const columnId = colSelect?.value ?? firstCol?.id ?? "";
+                          const operator = opSelect?.value ?? (firstCol?.type === "NUMBER" ? "gt" : "contains");
+                          if (columnId) createFilter(columnId, operator, value);
+                        }}
+                        className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
+                        onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
+                      />
+                    </div>
+                  );
+                })()}
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <button
@@ -897,7 +942,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
               onMouseLeave={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <Icon name="ArrowsDownUp" size={14} />
-              <span>{sorts.length > 0 ? `Sorted by ${sorts.length} field${sorts.length > 1 ? 's' : ''}` : 'Sort'}</span>
+              <span>{sorts.length > 0 ? 'Sorted' : 'Sort'}</span>
             </button>
             {/* Sort dropdown */}
             {activePanel === "sort" && (
@@ -978,67 +1023,61 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                   })}
 
                   {/* Default sort row when no sorts exist */}
-                  {sorts.length === 0 && columns.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <select
-                        value=""
-                        onChange={(e) => {
-                          const columnId = e.target.value;
-                          if (columnId) {
-                            setSorts([{ columnId, direction: "asc" }]);
-                          }
-                        }}
-                        className="h-8 flex-1 rounded px-2 text-[13px]"
-                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                      >
-                        <option value="" disabled>Pick a field to sort by</option>
-                        {columns.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                  {sorts.length === 0 && columns.length > 0 && (() => {
+                    const firstCol = columns[0];
+                    return (
+                      <div className="flex items-center gap-2">
+                        <select
+                          defaultValue=""
+                          onChange={(e) => {
+                            const columnId = e.target.value;
+                            if (columnId) {
+                              const dirSelect = e.target.parentElement?.querySelector('select[data-sort-dir]') as HTMLSelectElement | null;
+                              const direction = (dirSelect?.value === "desc" ? "desc" : "asc") as "asc" | "desc";
+                              setSorts([{ columnId, direction }]);
+                            }
+                          }}
+                          className="h-8 flex-1 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="" disabled>Pick a field to sort by</option>
+                          {columns.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
 
-                      <select
-                        value="asc"
-                        disabled
-                        className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                      >
-                        <option value="asc">A → Z</option>
-                        <option value="desc">Z → A</option>
-                      </select>
+                        <select
+                          data-sort-dir
+                          defaultValue="asc"
+                          onChange={(e) => {
+                            const direction = e.target.value === "desc" ? "desc" : "asc";
+                            const fieldSelect = e.target.parentElement?.querySelector('select:not([data-sort-dir])') as HTMLSelectElement | null;
+                            const columnId = fieldSelect?.value;
+                            if (columnId) {
+                              setSorts([{ columnId, direction }]);
+                            }
+                          }}
+                          className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="asc">{firstCol?.type !== "NUMBER" ? 'A → Z' : '1 → 9'}</option>
+                          <option value="desc">{firstCol?.type !== "NUMBER" ? 'Z → A' : '9 → 1'}</option>
+                        </select>
 
-                      <button
-                        type="button"
-                        disabled
-                        className="shrink-0 rounded p-1.5 opacity-30"
-                        style={{ color: 'var(--color-foreground-subtle)' }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
-                        </svg>
-                      </button>
-                    </div>
-                  )}
+                        <button
+                          type="button"
+                          disabled
+                          className="shrink-0 rounded p-1.5 opacity-30"
+                          style={{ color: 'var(--color-foreground-subtle)' }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
-
-                {/* Add another sort */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const first = columns[0];
-                    if (!first) return;
-                    setSorts((prev) => [...prev, { columnId: first.id, direction: "asc" }]);
-                  }}
-                  className="mt-3 flex items-center gap-1 text-[13px] transition-colors"
-                  style={{ color: 'var(--color-foreground-subtle)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <span>Add another sort</span>
-                </button>
 
                 {/* Divider */}
                 <div className="my-3 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
@@ -1142,21 +1181,39 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
           </button>
 
           {/* Search */}
-          {toolbarSearchOpen ? (
-            <div className="relative ml-2">
+          {toolbarSearchOpen && (
+            <div className="relative">
               <Icon name="MagnifyingGlass" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-foreground-subtle)]" />
               <input
                 ref={toolbarSearchRef}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setSearchInput('');
+                    setToolbarSearchOpen(false);
+                  }
+                }}
                 placeholder="Search"
-                className="h-8 w-[180px] rounded pl-8 pr-3 text-[13px] outline-none transition-colors"
-                style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--palette-blue)')}
-                onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border-default)')}
+                className="h-8 w-[180px] rounded pl-8 pr-8 text-[13px]"
+                style={{ border: '1px solid #ccc', backgroundColor: 'var(--color-background-default)', outline: 'none', boxShadow: 'none' }}
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('');
+                    toolbarSearchRef.current?.focus();
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--color-foreground-subtle)] hover:text-[var(--color-foreground-default)]"
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                  </svg>
+                </button>
+              )}
             </div>
-          ) : null}
+          )}
 
           <button
             type="button"

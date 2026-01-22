@@ -332,34 +332,29 @@ function GridCell(props: {
 
   const cellId = `cell-${rowId}-${columnId}`;
 
-  if (isEditing) {
-    return (
-      <input
-        autoFocus
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault();
-            setEditing(null);
-            return;
-          }
-          if (e.key === "Enter") {
-            e.preventDefault();
-            commitEdit("down");
-            return;
-          }
-          if (e.key === "Tab") {
-            e.preventDefault();
-            commitEdit(e.shiftKey ? "left" : "right");
-          }
-        }}
-        onBlur={() => commitEdit(null)}
-        className="h-full w-full rounded-none border-2 bg-white px-2 text-[13px] outline-none"
-        style={{ borderColor: 'var(--palette-blue)', boxShadow: 'var(--elevation-low)' }}
-      />
-    );
-  }
+  // Determine border style based on state
+  // Use outline instead of box-shadow to overlay the container's borders cleanly
+  const getBorderStyle = (): React.CSSProperties => {
+    if (isEditing) {
+      return {
+        outline: '2px solid var(--palette-blue)',
+        outlineOffset: '-2px',
+        backgroundColor: 'white',
+        zIndex: 2,
+        position: 'relative',
+      };
+    }
+    if (isFocused) {
+      return {
+        outline: '2px solid var(--palette-blue)',
+        outlineOffset: '-2px',
+        backgroundColor: 'var(--color-background-selected-blue)',
+        zIndex: 2,
+        position: 'relative',
+      };
+    }
+    return {};
+  };
 
   return (
     <div
@@ -368,35 +363,62 @@ function GridCell(props: {
       onMouseDown={(e) => {
         e.preventDefault();
         setFocused({ rowIndex, columnId });
+        if (e.currentTarget instanceof HTMLElement) {
+          e.currentTarget.focus();
+        }
       }}
-      onDoubleClick={() => startEdit(rowIndex, columnId)}
-      className={
-        "relative flex h-full items-center truncate px-2 text-[13px] outline-none transition-colors " +
-        (isFocused
-          ? "ring-2 ring-inset"
-          : "")
-      }
-      style={isFocused ? {
-        backgroundColor: 'var(--color-background-selected-blue)',
-        '--tw-ring-color': 'var(--palette-blue)'
-      } as React.CSSProperties : undefined}
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startEdit(rowIndex, columnId);
+      }}
+      className="relative flex h-full items-center truncate text-[13px] outline-none"
+      style={{ ...getBorderStyle(), userSelect: isEditing ? "text" : "none" }}
     >
-      {value === null || value === undefined ? "" : String(value)}
-
-      {/* Fill Handle - 6px blue square at bottom-right of selected cell */}
-      {isFocused && (
-        <div
-          className="absolute cursor-crosshair"
-          style={{
-            width: '6px',
-            height: '6px',
-            backgroundColor: 'var(--palette-blue)',
-            bottom: '-3px',
-            right: '-3px',
-            zIndex: 5,
+      {isEditing ? (
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              setEditing(null);
+              return;
+            }
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitEdit("down");
+              return;
+            }
+            if (e.key === "Tab") {
+              e.preventDefault();
+              commitEdit(e.shiftKey ? "left" : "right");
+            }
           }}
-          title="Drag to fill"
+          onBlur={() => commitEdit(null)}
+          className="h-full w-full bg-transparent px-2 text-[13px] outline-none"
         />
+      ) : (
+        <>
+          <span className="px-2">{value === null || value === undefined ? "" : String(value)}</span>
+
+          {/* Fill Handle - 6px blue square at bottom-right of selected cell */}
+          {isFocused && (
+            <div
+              className="absolute cursor-crosshair"
+              style={{
+                width: '6px',
+                height: '6px',
+                backgroundColor: 'var(--palette-blue)',
+                bottom: '-3px',
+                right: '-3px',
+                zIndex: 5,
+              }}
+              title="Drag to fill"
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -460,9 +482,14 @@ export function AirtableGrid(props: {
 
   const [focused, setFocused] = useState<FocusedCell | null>(null);
   const [editing, setEditing] = useState<EditingCell | null>(null);
+  const [pendingFocus, setPendingFocus] = useState<FocusedCell | null>(null);
   const [draft, setDraft] = useState<string>("");
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [columnMenuId, setColumnMenuId] = useState<string | null>(null);
+  const [showAddColumnDropdown, setShowAddColumnDropdown] = useState(false);
+  const [addColDropdownPos, setAddColDropdownPos] = useState<{ top: number; right: number } | null>(null);
+  const addColumnBtnRef = useRef<HTMLButtonElement>(null);
+  const addColDropdownRef = useRef<HTMLDivElement>(null);
 
   const updateCell = api.row.updateCell.useMutation({
     onMutate: async ({ rowId, columnId, value }) => {
@@ -500,7 +527,47 @@ export function AirtableGrid(props: {
   });
 
   const addRow = api.row.addRow.useMutation({
-    onSuccess: async () => {
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await utils.row.infinite.cancel(queryInput);
+
+      // Snapshot the previous value
+      const previousData = utils.row.infinite.getInfiniteData(queryInput);
+
+      // Optimistically add a new row
+      const tempId = `temp-${Date.now()}`;
+      const now = new Date();
+      const tempRow = {
+        id: tempId,
+        order: (previousData?.pages?.[previousData.pages.length - 1]?.rows?.length ?? 0) + 1,
+        cells: {} as unknown,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      utils.row.infinite.setInfiniteData(queryInput, (old) => {
+        if (!old) return old;
+        const lastPageIndex = old.pages.length - 1;
+        return {
+          ...old,
+          pages: old.pages.map((page, i) =>
+            i === lastPageIndex
+              ? { ...page, rows: [...page.rows, tempRow] }
+              : page
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        utils.row.infinite.setInfiniteData(queryInput, context.previousData);
+      }
+    },
+    onSettled: async () => {
+      // Refetch to get the real data
       await utils.row.infinite.invalidate(queryInput);
       await utils.row.count.invalidate({
         tableId,
@@ -511,28 +578,107 @@ export function AirtableGrid(props: {
     },
   });
 
+  const createColumn = api.column.create.useMutation({
+    onMutate: async (newColumn) => {
+      // Cancel outgoing refetches
+      await utils.table.get.cancel({ tableId });
+
+      // Snapshot previous data
+      const previousData = utils.table.get.getData({ tableId });
+
+      // Optimistically add the new column
+      const tempId = `temp-${Date.now()}`;
+      const tempColumn = {
+        id: tempId,
+        name: newColumn.name,
+        type: newColumn.type,
+        width: 180,
+        isPrimary: false,
+        order: (previousData?.columns?.length ?? 0) + 1,
+        tableId,
+        config: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      utils.table.get.setData({ tableId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          columns: [...old.columns, tempColumn],
+        };
+      });
+
+      setShowAddColumnDropdown(false);
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        utils.table.get.setData({ tableId }, context.previousData);
+      }
+    },
+    onSettled: async () => {
+      // Refetch to get real data
+      await utils.table.get.invalidate({ tableId });
+    },
+  });
+
+  // Close add column dropdown when clicking outside
+  useEffect(() => {
+    if (!showAddColumnDropdown) return;
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      const isInsideDropdown = addColDropdownRef.current?.contains(target);
+      const isInsideButton = addColumnBtnRef.current?.contains(target);
+      if (!isInsideDropdown && !isInsideButton) {
+        setShowAddColumnDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAddColumnDropdown]);
+
   const height = rowHeightPx[rowHeight] ?? 32;
 
-  const moveFrom = (start: FocusedCell, deltaRow: number, deltaCol: number) => {
+  const moveFrom = (
+    start: FocusedCell,
+    deltaRow: number,
+    deltaCol: number,
+    wrapRows = false,
+    allowRowOverflow = false
+  ) => {
+    if (rows.length === 0 || focusableColumnIds.length === 0) return start;
     const colIndex = focusableColumnIds.indexOf(start.columnId);
     const startCol = colIndex >= 0 ? colIndex : 0;
 
     let nextRow = start.rowIndex + deltaRow;
     let nextCol = startCol + deltaCol;
 
-    if (nextCol < 0) {
-      nextRow -= 1;
-      nextCol = focusableColumnIds.length - 1;
-    } else if (nextCol >= focusableColumnIds.length) {
-      nextRow += 1;
-      nextCol = 0;
+    // Only wrap rows if explicitly allowed (e.g., for Tab key)
+    if (wrapRows) {
+      if (nextCol < 0) {
+        nextRow -= 1;
+        nextCol = focusableColumnIds.length - 1;
+      } else if (nextCol >= focusableColumnIds.length) {
+        nextRow += 1;
+        nextCol = 0;
+      }
     }
 
-    nextRow = Math.max(0, Math.min(rows.length - 1, nextRow));
+    const maxRow = allowRowOverflow ? rows.length : rows.length - 1;
+    nextRow = Math.max(0, Math.min(maxRow, nextRow));
     nextCol = Math.max(0, Math.min(focusableColumnIds.length - 1, nextCol));
 
     const nextColumnId = focusableColumnIds[nextCol];
-    return nextColumnId ? { rowIndex: nextRow, columnId: nextColumnId } : start;
+    if (!nextColumnId) return start;
+
+    // Return same object reference if position unchanged (prevents unnecessary re-renders at edges)
+    if (nextRow === start.rowIndex && nextColumnId === start.columnId) {
+      return start;
+    }
+
+    return { rowIndex: nextRow, columnId: nextColumnId };
   };
 
   const startEdit = (rowIndex: number, columnId: string) => {
@@ -582,11 +728,13 @@ export function AirtableGrid(props: {
 
     if (!move) return;
 
+    // Tab wraps rows, arrow keys don't (but commitEdit is called from Tab in edit mode)
+    const wrapRows = move === "left" || move === "right";
     const next =
       move === "left"
-        ? moveFrom(base, 0, -1)
+        ? moveFrom(base, 0, -1, wrapRows)
         : move === "right"
-          ? moveFrom(base, 0, 1)
+          ? moveFrom(base, 0, 1, wrapRows)
           : move === "up"
             ? moveFrom(base, -1, 0)
             : moveFrom(base, 1, 0);
@@ -652,7 +800,6 @@ export function AirtableGrid(props: {
             className="group relative flex h-full w-full items-center justify-center text-[11px]"
             style={{
               color: 'var(--palette-gray-500)',
-              backgroundColor: 'white',
               borderBottom: '1px solid var(--color-border-cell-bottom)'
             }}
           >
@@ -699,7 +846,6 @@ export function AirtableGrid(props: {
         <div
           className="group flex h-full w-full items-center justify-center"
           style={{
-            backgroundColor: 'white',
             borderBottom: '1px solid var(--color-border-cell-bottom)'
           }}
         >
@@ -708,7 +854,7 @@ export function AirtableGrid(props: {
             onClick={() => expandRecord(row.original.id)}
             className="flex h-5 w-5 items-center justify-center rounded opacity-0 transition-all group-hover:opacity-100"
             style={{
-              backgroundColor: 'white',
+              backgroundColor: 'var(--color-background-default)',
               boxShadow: '0 0 0 1px rgba(0,0,0,0.1)',
               color: 'var(--palette-gray-500)'
             }}
@@ -801,30 +947,37 @@ export function AirtableGrid(props: {
       id: "__addcol",
       header: () => (
         <div
-          className="flex h-full items-center justify-center"
+          className="relative flex h-full w-full items-center justify-center"
           style={{
             backgroundColor: 'white',
-            borderBottom: '1px solid var(--color-border-cell-bottom)'
+            borderBottom: '1px solid var(--color-border-cell-bottom)',
+            borderRight: '1px solid var(--color-border-cell)'
           }}
         >
           <button
+            ref={addColumnBtnRef}
             type="button"
+            onClick={() => {
+              if (addColumnBtnRef.current) {
+                const rect = addColumnBtnRef.current.getBoundingClientRect();
+                setAddColDropdownPos({
+                  top: rect.bottom + 4,
+                  right: window.innerWidth - rect.right,
+                });
+              }
+              setShowAddColumnDropdown((prev) => !prev);
+            }}
             className="flex h-full w-full items-center justify-center transition-colors"
             style={{ color: 'var(--color-foreground-subtle)' }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             aria-label="Add column"
           >
-            <Icon name="Plus" size={16} />
+            <Icon name="Plus" size={20} />
           </button>
         </div>
       ),
-      cell: () => (
-        <div
-          className="h-full"
-          style={{ backgroundColor: 'var(--palette-neutral-white)' }}
-        />
-      ),
+      cell: () => null,
       size: 92,
       enableResizing: false,
     };
@@ -841,6 +994,11 @@ export function AirtableGrid(props: {
     enableColumnResizing: true,
     columnResizeMode: "onChange",
   });
+
+  // Calculate data row width (excluding __addcol column)
+  const dataRowWidth = table.getAllColumns()
+    .filter(col => col.id !== '__addcol')
+    .reduce((sum, col) => sum + col.getSize(), 0);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -890,6 +1048,7 @@ export function AirtableGrid(props: {
     }
     prevFocused.current = focused;
 
+    // Focus the cell element for keyboard events to bubble to container
     const row = rows[focused.rowIndex];
     if (!row) return;
     const el = document.getElementById(`cell-${row.id}-${focused.columnId}`);
@@ -898,9 +1057,25 @@ export function AirtableGrid(props: {
     }
   }, [focused, rows, rowVirtualizer]);
 
-  const moveFocus = (deltaRow: number, deltaCol: number) => {
+  const moveFocus = (
+    deltaRow: number,
+    deltaCol: number,
+    options: { wrapRows?: boolean; allowRowOverflow?: boolean } = {}
+  ) => {
     if (!focused) return;
-    setFocused(moveFrom(focused, deltaRow, deltaCol));
+    const { wrapRows = false, allowRowOverflow = false } = options;
+    const next = moveFrom(focused, deltaRow, deltaCol, wrapRows, allowRowOverflow);
+    if (next.rowIndex >= rows.length) {
+      if (rowsQuery.hasNextPage && !rowsQuery.isFetchingNextPage) {
+        void rowsQuery.fetchNextPage();
+      }
+      if (rowsQuery.hasNextPage) {
+        setPendingFocus(next);
+      }
+      return;
+    }
+    if (pendingFocus) setPendingFocus(null);
+    setFocused(next);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -914,19 +1089,19 @@ export function AirtableGrid(props: {
         break;
       case "ArrowDown":
         e.preventDefault();
-        moveFocus(1, 0);
+        moveFocus(1, 0, { allowRowOverflow: rowsQuery.hasNextPage });
         break;
       case "ArrowLeft":
         e.preventDefault();
-        moveFocus(0, -1);
+        moveFocus(0, -1, { wrapRows: true, allowRowOverflow: rowsQuery.hasNextPage });
         break;
       case "ArrowRight":
         e.preventDefault();
-        moveFocus(0, 1);
+        moveFocus(0, 1, { wrapRows: true, allowRowOverflow: rowsQuery.hasNextPage });
         break;
       case "Tab":
         e.preventDefault();
-        moveFocus(0, e.shiftKey ? -1 : 1);
+        moveFocus(0, e.shiftKey ? -1 : 1, { wrapRows: true });
         break;
       case "Enter":
         e.preventDefault();
@@ -953,6 +1128,20 @@ export function AirtableGrid(props: {
     initialFocusSet.current = true;
     setFocused({ rowIndex: 0, columnId: first });
   }, [rows.length, focusableColumnIds, focused]);
+
+  useEffect(() => {
+    if (!pendingFocus) return;
+    if (pendingFocus.rowIndex >= rows.length) return;
+    const nextColumnId = focusableColumnIds.includes(pendingFocus.columnId)
+      ? pendingFocus.columnId
+      : focusableColumnIds[0];
+    if (!nextColumnId) {
+      setPendingFocus(null);
+      return;
+    }
+    setPendingFocus(null);
+    setFocused({ rowIndex: pendingFocus.rowIndex, columnId: nextColumnId });
+  }, [pendingFocus, rows.length, focusableColumnIds]);
 
   const totalCount = countQuery.data?.count ?? null;
 
@@ -1001,6 +1190,7 @@ export function AirtableGrid(props: {
         tabIndex={0}
         onKeyDown={onKeyDown}
         className="min-h-0 flex-1 overflow-auto outline-none"
+        style={{ outline: "none" }}
       >
         <div style={{ width: table.getTotalSize() }}>
           {/* Header */}
@@ -1016,6 +1206,7 @@ export function AirtableGrid(props: {
               <div key={hg.id} className="flex" style={{ height }}>
                 {hg.headers.map((header) => {
                   const isLeftPaneCol = header.column.id === '__rownum' || header.column.id === '__expand';
+                  const isAddCol = header.column.id === '__addcol';
                   return (
                     <div
                       key={header.id}
@@ -1023,7 +1214,7 @@ export function AirtableGrid(props: {
                       style={{
                         width: header.getSize(),
                         height,
-                        borderRight: isLeftPaneCol ? 'none' : '1px solid var(--color-border-cell)'
+                        borderRight: (isLeftPaneCol || isAddCol) ? 'none' : '1px solid var(--color-border-cell)'
                       }}
                     >
                       {header.isPlaceholder
@@ -1065,7 +1256,7 @@ export function AirtableGrid(props: {
           {/* Body */}
           <div
             style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
+              height: `${rowVirtualizer.getTotalSize() + (!rowsQuery.hasNextPage ? height : 0)}px`,
               position: "relative",
             }}
           >
@@ -1083,7 +1274,7 @@ export function AirtableGrid(props: {
                     position: "absolute",
                     top: 0,
                     left: 0,
-                    width: "100%",
+                    width: dataRowWidth,
                     height: virtualRow.size,
                     transform: `translateY(${virtualRow.start}px)`,
                     backgroundColor: 'var(--palette-neutral-white)',
@@ -1112,58 +1303,90 @@ export function AirtableGrid(props: {
                           : "No records"}
                     </div>
                   ) : (
-                    row!.getVisibleCells().map((cell) => {
-                      const isLeftPaneCol = cell.column.id === '__rownum' || cell.column.id === '__expand';
-                      return (
-                        <div
-                          key={cell.id}
-                          style={{
-                            width: cell.column.getSize(),
-                            height: virtualRow.size,
-                            borderRight: isLeftPaneCol ? 'none' : '1px solid var(--color-border-cell)'
-                          }}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      );
-                    })
+                    row!.getVisibleCells()
+                      .filter((cell) => cell.column.id !== '__addcol')
+                      .map((cell) => {
+                        const isLeftPaneCol = cell.column.id === '__rownum' || cell.column.id === '__expand';
+                        return (
+                          <div
+                            key={cell.id}
+                            style={{
+                              width: cell.column.getSize(),
+                              height: virtualRow.size,
+                              borderRight: isLeftPaneCol ? 'none' : '1px solid var(--color-border-cell)'
+                            }}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        );
+                      })
                   )}
                 </div>
               );
             })}
+
+            {/* Inline Add Row - at the end of the data */}
+            {!rowsQuery.hasNextPage && (
+              <div
+                className="flex cursor-pointer transition-colors"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: dataRowWidth,
+                  height: height,
+                  transform: `translateY(${rowVirtualizer.getTotalSize()}px)`,
+                  backgroundColor: 'var(--palette-neutral-white)',
+                  borderBottom: '1px solid var(--color-border-cell-bottom)',
+                }}
+                onClick={() => addRow.mutate({ tableId })}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--palette-neutral-lightGray1)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--palette-neutral-white)'}
+              >
+                {/* Row number column with plus icon */}
+                {table.getAllColumns()
+                  .filter((col) => col.id !== '__addcol')
+                  .map((col) => {
+                    const isRowNumCol = col.id === '__rownum';
+                    return (
+                      <div
+                        key={col.id}
+                        className="flex items-center justify-center"
+                        style={{
+                          width: col.getSize(),
+                          height: height,
+                          color: 'var(--color-foreground-subtle)',
+                        }}
+                      >
+                        {isRowNumCol && <Icon name="Plus" size={14} />}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
 
-          {/* Pinned Footer Row - sticky at bottom, record count only */}
-          <div
-            className="sticky bottom-0 z-10 flex items-center text-[12px] px-2"
-            style={{
-              height: 24,
-              backgroundColor: 'var(--palette-neutral-lightGray1)',
-              color: 'var(--color-foreground-subtle)',
-            }}
-          >
-            {totalCount === null
-              ? ""
-              : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
-            {rowsQuery.isFetchingNextPage ? " · Loading…" : ""}
-          </div>
         </div>
       </div>
 
-      {/* Floating Action Pill - absolutely positioned over the grid */}
+      {/* Floating Action Bar - pill style positioned above footer */}
       <div
-        className="absolute bottom-8 left-2 z-20 flex items-center rounded-full overflow-hidden"
+        className="absolute bottom-8 left-2 z-20 flex items-center rounded-md overflow-hidden"
         style={{
-          border: '1px solid var(--color-border-default)',
           backgroundColor: 'var(--color-background-default)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+          border: '1px solid var(--color-border-default)',
         }}
       >
         {/* Add row button */}
         <button
           type="button"
-          className="flex items-center justify-center px-2.5 py-1.5 transition-colors"
-          style={{ color: 'var(--color-foreground-subtle)' }}
+          className="flex items-center justify-center px-3 py-1.5 transition-colors"
+          style={{
+            color: 'var(--color-foreground-subtle)',
+            backgroundColor: 'transparent',
+            borderRight: '1px solid var(--color-border-default)',
+          }}
           disabled={addRow.isPending}
           onClick={() => addRow.mutate({ tableId })}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
@@ -1173,14 +1396,14 @@ export function AirtableGrid(props: {
           <Icon name="Plus" size={16} />
         </button>
 
-        {/* Divider */}
-        <div className="h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
-
         {/* Scissors/Add button */}
         <button
           type="button"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] transition-colors"
-          style={{ color: 'var(--color-foreground-subtle)' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] transition-colors"
+          style={{
+            color: 'var(--color-foreground-subtle)',
+            backgroundColor: 'transparent',
+          }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
@@ -1188,7 +1411,77 @@ export function AirtableGrid(props: {
           <span>Add...</span>
         </button>
       </div>
+
+      {/* Footer - pinned to bottom of viewport */}
+      <div
+        className="flex items-center text-[12px] px-2"
+        style={{
+          height: 28,
+          backgroundColor: 'var(--palette-neutral-lightGray1)',
+          color: 'var(--color-foreground-subtle)',
+          borderTop: '1px solid var(--color-border-default)',
+          flexShrink: 0,
+        }}
+      >
+        {totalCount === null
+          ? ""
+          : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
+        {rowsQuery.isFetchingNextPage ? " · Loading…" : ""}
       </div>
+      </div>
+
+      {/* Add Column Dropdown - rendered outside column defs for proper event handling */}
+      {showAddColumnDropdown && addColDropdownPos && (
+        <div
+          ref={addColDropdownRef}
+          className="fixed z-50 w-[200px] rounded-md py-1"
+          style={{
+            top: addColDropdownPos.top,
+            right: addColDropdownPos.right,
+            backgroundColor: 'var(--color-background-raised-popover)',
+            border: '1px solid var(--color-border-default)',
+            boxShadow: 'var(--elevation-medium)'
+          }}
+        >
+          <div className="px-3 py-2 text-[12px] font-medium uppercase" style={{ color: 'var(--color-foreground-subtle)' }}>
+            Field type
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const name = window.prompt("Column name?", "New Column");
+              if (name) {
+                createColumn.mutate({ tableId, name, type: "TEXT" });
+              }
+            }}
+            disabled={createColumn.isPending}
+            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] transition-colors"
+            style={{ color: 'var(--color-foreground-default)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Icon name="TextAa" size={16} className="text-[var(--color-foreground-subtle)]" />
+            <span>Single line text</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const name = window.prompt("Column name?", "New Column");
+              if (name) {
+                createColumn.mutate({ tableId, name, type: "NUMBER" });
+              }
+            }}
+            disabled={createColumn.isPending}
+            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] transition-colors"
+            style={{ color: 'var(--color-foreground-default)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Icon name="HashStraight" size={16} className="text-[var(--color-foreground-subtle)]" />
+            <span>Number</span>
+          </button>
+        </div>
+      )}
 
       {/* Record Expansion Modal */}
       {expandedRowId && (() => {

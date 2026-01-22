@@ -160,7 +160,12 @@ export const rowRouter = createTRPCRouter({
       const columnTypes = new Map(columns.map((c) => [c.id, c.type]));
       const searchableColumnIds = columns.map((c) => c.id);
 
-      // View config (optional)
+      // View config (optional) - only use view config values if input values are not explicitly provided
+      // This prevents race conditions where frontend state updates before auto-save completes
+      const hasExplicitSearch = input.search !== undefined && input.search !== null;
+      const hasExplicitFilters = input.filters !== undefined && input.filters.conditions.length > 0;
+      const hasExplicitSorts = input.sorts !== undefined && input.sorts.length > 0;
+
       let mergedSearch = input.search ?? null;
       let mergedFilters: Filters = input.filters ?? {
         conjunction: "and",
@@ -183,9 +188,16 @@ export const rowRouter = createTRPCRouter({
             .safeParse(view.config);
 
           if (parsed.success) {
-            mergedSearch = parsed.data.search ?? mergedSearch;
-            mergedFilters = parsed.data.filters ?? mergedFilters;
-            mergedSorts = parsed.data.sorts ?? mergedSorts;
+            // Only use view config values if not explicitly provided in input
+            if (!hasExplicitSearch) {
+              mergedSearch = parsed.data.search ?? mergedSearch;
+            }
+            if (!hasExplicitFilters) {
+              mergedFilters = parsed.data.filters ?? mergedFilters;
+            }
+            if (!hasExplicitSorts) {
+              mergedSorts = parsed.data.sorts ?? mergedSorts;
+            }
           }
         }
       }
@@ -266,9 +278,16 @@ export const rowRouter = createTRPCRouter({
         } else {
           const cells = (last.cells ?? {}) as Record<string, unknown>;
           const v = cells[primarySort.columnId];
+          const colType = columnTypes.get(primarySort.columnId) ?? "TEXT";
+
+          let sortValue: string | number | null = null;
+          if (v !== undefined && v !== "" && v !== null) {
+            sortValue = colType === "NUMBER" ? Number(v) : String(v);
+          }
+
           nextCursor = {
             id: last.id,
-            sortValue: v === undefined || v === "" ? null : (v as any),
+            sortValue,
           };
         }
       }
@@ -299,6 +318,10 @@ export const rowRouter = createTRPCRouter({
       const columnTypes = new Map(columns.map((c) => [c.id, c.type]));
       const searchableColumnIds = columns.map((c) => c.id);
 
+      // Only use view config values if input values are not explicitly provided
+      const hasExplicitSearch = input.search !== undefined && input.search !== null;
+      const hasExplicitFilters = input.filters !== undefined && input.filters.conditions.length > 0;
+
       let mergedSearch = input.search ?? null;
       let mergedFilters: Filters = input.filters ?? {
         conjunction: "and",
@@ -319,8 +342,12 @@ export const rowRouter = createTRPCRouter({
             .safeParse(view.config);
 
           if (parsed.success) {
-            mergedSearch = parsed.data.search ?? mergedSearch;
-            mergedFilters = parsed.data.filters ?? mergedFilters;
+            if (!hasExplicitSearch) {
+              mergedSearch = parsed.data.search ?? mergedSearch;
+            }
+            if (!hasExplicitFilters) {
+              mergedFilters = parsed.data.filters ?? mergedFilters;
+            }
           }
         }
       }
