@@ -490,85 +490,642 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
 
         {/* Right side: Filters */}
         <div className="flex items-center gap-1">
-          {/* Hide fields */}
+          {/* Add 100k rows */}
           <button
             type="button"
-            onClick={() => setActivePanel((p) => (p === "hide" ? null : "hide"))}
+            onClick={() => { if (tableId) add100k.mutate({ tableId }); }}
+            disabled={add100k.isPending || !tableId}
             className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
             style={{
-              backgroundColor: activePanel === "hide" ? 'var(--color-background-selected-blue)' : 'transparent',
-              color: activePanel === "hide" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              color: 'var(--color-foreground-subtle)',
+              opacity: add100k.isPending ? 0.5 : 1,
             }}
-            onMouseEnter={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
-            onMouseLeave={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            onMouseEnter={(e) => { if (!add100k.isPending) e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
-            <Icon name="EyeSlash" size={14} />
-            <span>Hide fields</span>
+            <Icon name="Plus" size={14} />
+            <span>{add100k.isPending ? "Adding..." : "Add 100k rows"}</span>
           </button>
+
+          {/* Hide fields */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setActivePanel((p) => (p === "hide" ? null : "hide"))}
+              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+              style={{
+                backgroundColor: activePanel === "hide" ? 'var(--color-background-selected-blue)' : 'transparent',
+                color: activePanel === "hide" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              }}
+              onMouseEnter={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+              onMouseLeave={(e) => { if (activePanel !== "hide") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Icon name="EyeSlash" size={14} />
+              <span>Hide fields</span>
+            </button>
+            {/* Hide fields dropdown */}
+            {activePanel === "hide" && (
+              <div
+                className="animate-dropdown-open absolute right-0 top-full z-30 mt-1 w-[280px] rounded-md p-3"
+                style={{
+                  backgroundColor: 'var(--color-background-raised-popover)',
+                  border: '1px solid var(--color-border-default)',
+                  boxShadow: 'var(--elevation-medium)'
+                }}
+              >
+                <input
+                  value={hideSearch}
+                  onChange={(e) => setHideSearch(e.target.value)}
+                  placeholder="Find a field"
+                  className="mb-2 h-8 w-full rounded px-3 text-[13px] outline-none"
+                  style={{
+                    border: '1px solid var(--color-border-default)',
+                    backgroundColor: 'var(--color-background-default)'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
+                />
+                <div className="max-h-64 overflow-auto">
+                  {columns.filter((c) => c.name.toLowerCase().includes(hideSearch.toLowerCase())).map((c) => {
+                    const isVisible = columnVisibility[c.id] !== false;
+                    return (
+                      <div
+                        key={c.id}
+                        className="flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+                        onClick={() => setColumnVisibility((prev) => ({ ...prev, [c.id]: prev[c.id] === false }))}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <div className="relative h-4 w-7 shrink-0 rounded-full transition-colors" style={{ backgroundColor: isVisible ? 'var(--palette-teal-dusty)' : 'var(--palette-gray-300)' }}>
+                          <div className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all" style={{ left: isVisible ? '14px' : '2px' }} />
+                        </div>
+                        <Icon name={c.type === "NUMBER" ? "Hash" : "TextAa"} size={14} className="shrink-0 text-[var(--color-foreground-subtle)]" />
+                        <span className="flex-1 truncate text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>{c.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex gap-2 border-t pt-2" style={{ borderColor: 'var(--color-border-default)' }}>
+                  <button type="button" onClick={() => { const h: Record<string, boolean> = {}; columns.forEach((c) => { h[c.id] = false; }); setColumnVisibility(h); }} className="flex-1 rounded py-1.5 text-[13px] transition-colors" style={{ border: '1px solid var(--color-border-default)', color: 'var(--color-foreground-default)', backgroundColor: 'var(--color-background-default)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}>Hide all</button>
+                  <button type="button" onClick={() => { const v: Record<string, boolean> = {}; columns.forEach((c) => { v[c.id] = true; }); setColumnVisibility(v); }} className="flex-1 rounded py-1.5 text-[13px] transition-colors" style={{ border: '1px solid var(--color-border-default)', color: 'var(--color-foreground-default)', backgroundColor: 'var(--color-background-default)' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}>Show all</button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Filter */}
-          <button
-            type="button"
-            onClick={() => setActivePanel((p) => (p === "filter" ? null : "filter"))}
-            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-            style={{
-              backgroundColor: filters.conditions.length > 0 ? 'var(--palette-green-light3)' : activePanel === "filter" ? 'var(--color-background-selected-blue)' : 'transparent',
-              color: filters.conditions.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "filter" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-            }}
-            onMouseEnter={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
-            onMouseLeave={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <Icon name="FunnelSimple" size={14} />
-            <span>{filters.conditions.length > 0 ? `${filters.conditions.length} filter${filters.conditions.length > 1 ? 's' : ''}` : 'Filter'}</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setActivePanel((p) => (p === "filter" ? null : "filter"))}
+              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+              style={{
+                backgroundColor: filters.conditions.length > 0 ? 'var(--palette-green-light3)' : activePanel === "filter" ? 'var(--color-background-selected-blue)' : 'transparent',
+                color: filters.conditions.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "filter" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              }}
+              onMouseEnter={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+              onMouseLeave={(e) => { if (filters.conditions.length === 0 && activePanel !== "filter") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Icon name="FunnelSimple" size={14} />
+              <span>{filters.conditions.length > 0 ? `${filters.conditions.length} filter${filters.conditions.length > 1 ? 's' : ''}` : 'Filter'}</span>
+            </button>
+            {/* Filter dropdown */}
+            {activePanel === "filter" && (
+              <div
+                className="animate-dropdown-open absolute right-0 top-full z-30 mt-1 min-w-[400px] rounded-md p-3"
+                style={{
+                  backgroundColor: 'var(--color-background-raised-popover)',
+                  border: '1px solid var(--color-border-default)',
+                  boxShadow: 'var(--elevation-medium)'
+                }}
+              >
+                {/* Filter Header */}
+                <div className="mb-3 text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Filter</div>
+
+                {/* AI Input */}
+                <div
+                  className="mb-3 flex items-center gap-2 rounded-md px-3 py-2"
+                  style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-foreground-ai)">
+                    <path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11l-1.5-3.5L3 6l3.5-1.5L8 1zm4 6l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2zM4 10l.67 1.33L6 12l-1.33.67L4 14l-.67-1.33L2 12l1.33-.67L4 10z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Describe what you want to see"
+                    className="flex-1 bg-transparent text-[13px] outline-none"
+                    style={{ color: 'var(--color-foreground-subtle)' }}
+                  />
+                </div>
+
+                {/* "In this view, show records" text */}
+                <div className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
+                  In this view, show records
+                </div>
+
+                <div className="space-y-2">
+                  {filters.conditions.map((f, idx) => {
+                    const col = columns.find((c) => c.id === f.columnId);
+                    const ops = operatorsForType(col?.type ?? "TEXT");
+                    const needsValue = f.operator !== "isEmpty" && f.operator !== "isNotEmpty";
+
+                    return (
+                      <div key={idx} className="flex items-center gap-2">
+                        {idx === 0 ? (
+                          <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                            Where
+                          </span>
+                        ) : (
+                          <select
+                            value={filters.conjunction}
+                            onChange={(e) =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                conjunction: e.target.value === "or" ? "or" : "and",
+                              }))
+                            }
+                            className="h-8 w-[52px] shrink-0 rounded border-0 bg-transparent px-0 text-[13px]"
+                            style={{ color: 'var(--color-foreground-subtle)' }}
+                          >
+                            <option value="and">and</option>
+                            <option value="or">or</option>
+                          </select>
+                        )}
+                        <select
+                          value={f.columnId}
+                          onChange={(e) => {
+                            const columnId = e.target.value;
+                            setFilters((prev) => ({
+                              ...prev,
+                              conditions: prev.conditions.map((c, i) =>
+                                i === idx ? { ...c, columnId, operator: "contains", value: "" } : c
+                              ),
+                            }));
+                          }}
+                          className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="" disabled>Field</option>
+                          {columns.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={f.operator}
+                          onChange={(e) => {
+                            const operator = e.target.value as FilterOperator;
+                            setFilters((prev) => ({
+                              ...prev,
+                              conditions: prev.conditions.map((c, i) =>
+                                i === idx ? { ...c, operator } : c
+                              ),
+                            }));
+                          }}
+                          className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          {ops.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+
+                        {needsValue && (
+                          <input
+                            value={f.value === null || f.value === undefined ? "" : String(f.value)}
+                            placeholder="Enter a value"
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setFilters((prev) => ({
+                                ...prev,
+                                conditions: prev.conditions.map((c, i) =>
+                                  i === idx ? { ...c, value: v } : c
+                                ),
+                              }));
+                            }}
+                            className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
+                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
+                            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
+                          />
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              conditions: prev.conditions.filter((_, i) => i !== idx),
+                            }))
+                          }
+                          className="shrink-0 rounded p-1.5 transition-colors"
+                          style={{ color: 'var(--color-foreground-subtle)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M5 2V1h6v1h4v1h-1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Default condition row when no conditions exist */}
+                {filters.conditions.length === 0 && columns.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                      Where
+                    </span>
+                    <select
+                      defaultValue={columns[0]?.id ?? ""}
+                      onChange={(e) => {
+                        const columnId = e.target.value;
+                        const col = columns.find((c) => c.id === columnId);
+                        setFilters((prev) => ({
+                          ...prev,
+                          conditions: [{
+                            columnId,
+                            operator: col?.type === "NUMBER" ? "gt" : "contains",
+                            value: "",
+                          }],
+                        }));
+                      }}
+                      className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
+                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                    >
+                      {columns.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      defaultValue="contains"
+                      className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                    >
+                      <option value="contains">contains</option>
+                      <option value="notContains">does not contain</option>
+                      <option value="equals">is</option>
+                      <option value="isEmpty">is empty</option>
+                      <option value="isNotEmpty">is not empty</option>
+                    </select>
+
+                    <input
+                      placeholder="Enter a value"
+                      className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
+                      style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
+                      onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
+                    />
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const first = columns[0];
+                      if (!first) return;
+                      setFilters((prev) => ({
+                        ...prev,
+                        conditions: [
+                          ...prev.conditions,
+                          {
+                            columnId: first.id,
+                            operator: first.type === "NUMBER" ? "gt" : "contains",
+                            value: "",
+                          },
+                        ],
+                      }));
+                    }}
+                    className="flex items-center gap-1 text-[13px] transition-colors"
+                    style={{ color: 'var(--palette-teal-dark1)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span>Add condition</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-[13px] transition-colors"
+                    style={{ color: 'var(--color-foreground-subtle)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span>Add condition group</span>
+                  </button>
+
+                  <div className="flex-1" />
+
+                  <button
+                    type="button"
+                    className="text-[13px] transition-colors"
+                    style={{ color: 'var(--color-foreground-subtle)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground-default)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-foreground-subtle)'}
+                  >
+                    Copy from another view
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Group */}
-          <button
-            type="button"
-            onClick={() => setActivePanel((p) => (p === "group" ? null : "group"))}
-            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-            style={{
-              backgroundColor: activePanel === "group" ? 'var(--color-background-selected-blue)' : 'transparent',
-              color: activePanel === "group" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-            }}
-            onMouseEnter={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
-            onMouseLeave={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <Icon name="Group" size={14} />
-            <span>Group</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setActivePanel((p) => (p === "group" ? null : "group"))}
+              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+              style={{
+                backgroundColor: activePanel === "group" ? 'var(--color-background-selected-blue)' : 'transparent',
+                color: activePanel === "group" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              }}
+              onMouseEnter={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+              onMouseLeave={(e) => { if (activePanel !== "group") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Icon name="Group" size={14} />
+              <span>Group</span>
+            </button>
+            {/* Group dropdown */}
+            {activePanel === "group" && (
+              <div
+                className="animate-dropdown-open absolute right-0 top-full z-30 mt-1 w-[280px] rounded-md p-3"
+                style={{
+                  backgroundColor: 'var(--color-background-raised-popover)',
+                  border: '1px solid var(--color-border-default)',
+                  boxShadow: 'var(--elevation-medium)'
+                }}
+              >
+                <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Group</div>
+                <p className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                  Group records by a field to organize your data.
+                </p>
+                <select
+                  className="h-8 w-full rounded px-2 text-sm"
+                  style={{ border: '1px solid var(--color-border-default)' }}
+                >
+                  <option value="">Pick a field to group by</option>
+                  {columns.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
           {/* Sort */}
-          <button
-            type="button"
-            onClick={() => setActivePanel((p) => (p === "sort" ? null : "sort"))}
-            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-            style={{
-              backgroundColor: sorts.length > 0 ? 'var(--palette-green-light3)' : activePanel === "sort" ? 'var(--color-background-selected-blue)' : 'transparent',
-              color: sorts.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "sort" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-            }}
-            onMouseEnter={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
-            onMouseLeave={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <Icon name="ArrowsDownUp" size={14} />
-            <span>{sorts.length > 0 ? `Sorted by ${sorts.length} field${sorts.length > 1 ? 's' : ''}` : 'Sort'}</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setActivePanel((p) => (p === "sort" ? null : "sort"))}
+              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+              style={{
+                backgroundColor: sorts.length > 0 ? 'var(--palette-green-light3)' : activePanel === "sort" ? 'var(--color-background-selected-blue)' : 'transparent',
+                color: sorts.length > 0 ? 'var(--palette-green-dark1)' : activePanel === "sort" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              }}
+              onMouseEnter={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+              onMouseLeave={(e) => { if (sorts.length === 0 && activePanel !== "sort") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Icon name="ArrowsDownUp" size={14} />
+              <span>{sorts.length > 0 ? `Sorted by ${sorts.length} field${sorts.length > 1 ? 's' : ''}` : 'Sort'}</span>
+            </button>
+            {/* Sort dropdown */}
+            {activePanel === "sort" && (
+              <div
+                className="animate-dropdown-open absolute right-0 top-full z-30 mt-1 w-[320px] rounded-md p-3"
+                style={{
+                  backgroundColor: 'var(--color-background-raised-popover)',
+                  border: '1px solid var(--color-border-default)',
+                  boxShadow: 'var(--elevation-medium)'
+                }}
+              >
+                {/* Sort by header with info icon */}
+                <div className="mb-3 flex items-center gap-1.5">
+                  <span className="text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Sort by</span>
+                  <button
+                    type="button"
+                    className="rounded-full p-0.5 transition-colors"
+                    style={{ color: 'var(--color-foreground-subtle)' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a1 1 0 110 2 1 1 0 010-2zm2 8H6v-1h1V8H6V7h3v4h1v1z" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Sort rows */}
+                <div className="space-y-2">
+                  {sorts.map((sort, idx) => {
+                    const col = columns.find((c) => c.id === sort.columnId);
+                    const isText = col?.type !== "NUMBER";
+                    return (
+                      <div key={idx} className="flex items-center gap-2">
+                        <select
+                          value={sort.columnId}
+                          onChange={(e) => {
+                            const columnId = e.target.value;
+                            setSorts((prev) =>
+                              prev.map((s, i) => (i === idx ? { ...s, columnId } : s))
+                            );
+                          }}
+                          className="h-8 flex-1 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          {columns.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={sort.direction}
+                          onChange={(e) => {
+                            const direction = e.target.value === "desc" ? "desc" : "asc";
+                            setSorts((prev) =>
+                              prev.map((s, i) => (i === idx ? { ...s, direction } : s))
+                            );
+                          }}
+                          className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="asc">{isText ? 'A → Z' : '1 → 9'}</option>
+                          <option value="desc">{isText ? 'Z → A' : '9 → 1'}</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => setSorts((prev) => prev.filter((_, i) => i !== idx))}
+                          className="shrink-0 rounded p-1.5 transition-colors"
+                          style={{ color: 'var(--color-foreground-subtle)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {/* Default sort row when no sorts exist */}
+                  {sorts.length === 0 && columns.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const columnId = e.target.value;
+                          if (columnId) {
+                            setSorts([{ columnId, direction: "asc" }]);
+                          }
+                        }}
+                        className="h-8 flex-1 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                      >
+                        <option value="" disabled>Pick a field to sort by</option>
+                        {columns.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        value="asc"
+                        disabled
+                        className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                      >
+                        <option value="asc">A → Z</option>
+                        <option value="desc">Z → A</option>
+                      </select>
+
+                      <button
+                        type="button"
+                        disabled
+                        className="shrink-0 rounded p-1.5 opacity-30"
+                        style={{ color: 'var(--color-foreground-subtle)' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add another sort */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const first = columns[0];
+                    if (!first) return;
+                    setSorts((prev) => [...prev, { columnId: first.id, direction: "asc" }]);
+                  }}
+                  className="mt-3 flex items-center gap-1 text-[13px] transition-colors"
+                  style={{ color: 'var(--color-foreground-subtle)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  <span>Add another sort</span>
+                </button>
+
+                {/* Divider */}
+                <div className="my-3 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+
+                {/* Automatically sort records toggle */}
+                <label className="flex cursor-pointer items-center gap-2">
+                  <div
+                    className="relative h-5 w-9 rounded-full transition-colors"
+                    style={{ backgroundColor: 'var(--palette-teal-dusty)' }}
+                  >
+                    <div
+                      className="absolute right-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
+                    />
+                  </div>
+                  <span className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
+                    Automatically sort records
+                  </span>
+                </label>
+              </div>
+            )}
+          </div>
 
           {/* Color */}
-          <button
-            type="button"
-            onClick={() => setActivePanel((p) => (p === "color" ? null : "color"))}
-            className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-            style={{
-              backgroundColor: activePanel === "color" ? 'var(--color-background-selected-blue)' : 'transparent',
-              color: activePanel === "color" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
-            }}
-            onMouseEnter={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
-            onMouseLeave={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <Icon name="Palette" size={14} />
-            <span>Color</span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setActivePanel((p) => (p === "color" ? null : "color"))}
+              className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
+              style={{
+                backgroundColor: activePanel === "color" ? 'var(--color-background-selected-blue)' : 'transparent',
+                color: activePanel === "color" ? 'var(--palette-blue)' : 'var(--color-foreground-subtle)'
+              }}
+              onMouseEnter={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'; }}
+              onMouseLeave={(e) => { if (activePanel !== "color") e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <Icon name="Palette" size={14} />
+              <span>Color</span>
+            </button>
+            {/* Color dropdown */}
+            {activePanel === "color" && (
+              <div
+                className="animate-dropdown-open absolute right-0 top-full z-30 mt-1 w-[280px] rounded-md p-3"
+                style={{
+                  backgroundColor: 'var(--color-background-raised-popover)',
+                  border: '1px solid var(--color-border-default)',
+                  boxShadow: 'var(--elevation-medium)'
+                }}
+              >
+                <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Color</div>
+                <p className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                  Apply colors to rows based on field values.
+                </p>
+                <div className="space-y-2">
+                  <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <input type="radio" name="colorMode" defaultChecked className="accent-[var(--palette-blue)]" />
+                    <div>
+                      <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>None</div>
+                      <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>No row coloring</div>
+                    </div>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <input type="radio" name="colorMode" className="accent-[var(--palette-blue)]" />
+                    <div>
+                      <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>Select field</div>
+                      <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Color by single select field</div>
+                    </div>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <input type="radio" name="colorMode" className="accent-[var(--palette-blue)]" />
+                    <div>
+                      <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>Conditions</div>
+                      <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Color rows based on conditions</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="mx-1 h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
 
@@ -731,757 +1288,6 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
 
         {/* Grid Container */}
         <section className="flex min-w-0 flex-1 flex-col">
-          {/* Panels (positioned below toolbar) */}
-          {activePanel ? (
-            <div
-              className="animate-dropdown-open absolute right-3 z-20 mt-[calc(var(--header-height)+var(--table-tabs-height)+var(--toolbar-height)+4px)] min-w-[320px] max-w-[400px] rounded-md"
-              style={{
-                backgroundColor: 'var(--color-background-raised-popover)',
-                border: '1px solid var(--color-border-default)',
-                boxShadow: 'var(--elevation-medium)'
-              }}
-            >
-              {activePanel === "hide" ? (
-                <div className="p-3">
-                  {/* Search input */}
-                  <input
-                    value={hideSearch}
-                    onChange={(e) => setHideSearch(e.target.value)}
-                    placeholder="Find a field"
-                    className="mb-2 h-8 w-full rounded px-3 text-[13px] outline-none"
-                    style={{
-                      border: '1px solid var(--color-border-default)',
-                      backgroundColor: 'var(--color-background-default)'
-                    }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
-                    onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
-                  />
-
-                  {/* Field list with toggles */}
-                  <div className="max-h-64 overflow-auto">
-                    {columns
-                      .filter((c) =>
-                        c.name.toLowerCase().includes(hideSearch.toLowerCase())
-                      )
-                      .map((c) => {
-                        const isVisible = columnVisibility[c.id] !== false;
-                        const fieldIcon = c.type === "NUMBER" ? "Hash" : "TextAa";
-                        return (
-                          <div
-                            key={c.id}
-                            className="flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
-                            onClick={() =>
-                              setColumnVisibility((prev) => ({
-                                ...prev,
-                                [c.id]: prev[c.id] === false,
-                              }))
-                            }
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            {/* Toggle switch */}
-                            <div
-                              className="relative h-4 w-7 shrink-0 rounded-full transition-colors"
-                              style={{
-                                backgroundColor: isVisible ? 'var(--palette-teal-dusty)' : 'var(--palette-gray-300)'
-                              }}
-                            >
-                              <div
-                                className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all"
-                                style={{
-                                  left: isVisible ? '14px' : '2px'
-                                }}
-                              />
-                            </div>
-                            {/* Field icon */}
-                            <Icon name={fieldIcon} size={14} className="shrink-0 text-[var(--color-foreground-subtle)]" />
-                            {/* Field name */}
-                            <span className="flex-1 truncate text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
-                              {c.name}
-                            </span>
-                            {/* Drag handle */}
-                            <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--color-foreground-subtle)" className="shrink-0 opacity-40">
-                              <circle cx="5" cy="4" r="1.5"/>
-                              <circle cx="11" cy="4" r="1.5"/>
-                              <circle cx="5" cy="8" r="1.5"/>
-                              <circle cx="11" cy="8" r="1.5"/>
-                              <circle cx="5" cy="12" r="1.5"/>
-                              <circle cx="11" cy="12" r="1.5"/>
-                            </svg>
-                          </div>
-                        );
-                      })}
-                  </div>
-
-                  {/* Hide all / Show all buttons */}
-                  <div className="mt-2 flex gap-2 border-t pt-2" style={{ borderColor: 'var(--color-border-default)' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const allHidden: Record<string, boolean> = {};
-                        columns.forEach((c) => { allHidden[c.id] = false; });
-                        setColumnVisibility(allHidden);
-                      }}
-                      className="flex-1 rounded py-1.5 text-[13px] transition-colors"
-                      style={{
-                        border: '1px solid var(--color-border-default)',
-                        color: 'var(--color-foreground-default)',
-                        backgroundColor: 'var(--color-background-default)'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}
-                    >
-                      Hide all
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const allVisible: Record<string, boolean> = {};
-                        columns.forEach((c) => { allVisible[c.id] = true; });
-                        setColumnVisibility(allVisible);
-                      }}
-                      className="flex-1 rounded py-1.5 text-[13px] transition-colors"
-                      style={{
-                        border: '1px solid var(--color-border-default)',
-                        color: 'var(--color-foreground-default)',
-                        backgroundColor: 'var(--color-background-default)'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}
-                    >
-                      Show all
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {activePanel === "filter" ? (
-                <div className="p-3">
-                  {/* Filter Header */}
-                  <div className="mb-3 text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Filter</div>
-
-                  {/* AI Input */}
-                  <div
-                    className="mb-3 flex items-center gap-2 rounded-md px-3 py-2"
-                    style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-foreground-ai)">
-                      <path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11l-1.5-3.5L3 6l3.5-1.5L8 1zm4 6l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2zM4 10l.67 1.33L6 12l-1.33.67L4 14l-.67-1.33L2 12l1.33-.67L4 10z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Describe what you want to see"
-                      className="flex-1 bg-transparent text-[13px] outline-none"
-                      style={{ color: 'var(--color-foreground-subtle)' }}
-                    />
-                  </div>
-
-                  {/* "In this view, show records" text - matches Airtable */}
-                  <div className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
-                    In this view, show records
-                  </div>
-
-                  <div className="space-y-2">
-                    {filters.conditions.map((f, idx) => {
-                      const col = columns.find((c) => c.id === f.columnId);
-                      const ops = operatorsForType(col?.type ?? "TEXT");
-                      const needsValue =
-                        f.operator !== "isEmpty" && f.operator !== "isNotEmpty";
-
-                      return (
-                        <div key={idx} className="flex items-center gap-2">
-                          {/* "Where" label for first condition, conjunction dropdown for subsequent */}
-                          {idx === 0 ? (
-                            <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                              Where
-                            </span>
-                          ) : (
-                            <select
-                              value={filters.conjunction}
-                              onChange={(e) =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  conjunction: e.target.value === "or" ? "or" : "and",
-                                }))
-                              }
-                              className="h-8 w-[52px] shrink-0 rounded border-0 bg-transparent px-0 text-[13px]"
-                              style={{ color: 'var(--color-foreground-subtle)' }}
-                            >
-                              <option value="and">and</option>
-                              <option value="or">or</option>
-                            </select>
-                          )}
-                          <select
-                            value={f.columnId}
-                            onChange={(e) => {
-                              const columnId = e.target.value;
-                              setFilters((prev) => ({
-                                ...prev,
-                                conditions: prev.conditions.map((c, i) =>
-                                  i === idx
-                                    ? {
-                                        ...c,
-                                        columnId,
-                                        operator: "contains",
-                                        value: "",
-                                      }
-                                    : c
-                                ),
-                              }));
-                            }}
-                            className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
-                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                          >
-                            <option value="" disabled>
-                              Field
-                            </option>
-                            {columns.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={f.operator}
-                            onChange={(e) => {
-                              const operator = e.target.value as FilterOperator;
-                              setFilters((prev) => ({
-                                ...prev,
-                                conditions: prev.conditions.map((c, i) =>
-                                  i === idx ? { ...c, operator } : c
-                                ),
-                              }));
-                            }}
-                            className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                          >
-                            {ops.map((o) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))}
-                          </select>
-
-                          {needsValue ? (
-                            <input
-                              value={
-                                f.value === null || f.value === undefined
-                                  ? ""
-                                  : String(f.value)
-                              }
-                              placeholder="Enter a value"
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  conditions: prev.conditions.map((c, i) =>
-                                    i === idx ? { ...c, value: v } : c
-                                  ),
-                                }));
-                              }}
-                              className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
-                              style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                              onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
-                              onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
-                            />
-                          ) : null}
-
-                          {/* Delete button (trash icon) */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFilters((prev) => ({
-                                ...prev,
-                                conditions: prev.conditions.filter((_, i) => i !== idx),
-                              }))
-                            }
-                            className="shrink-0 rounded p-1.5 transition-colors"
-                            style={{ color: 'var(--color-foreground-subtle)' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                              <path d="M5 2V1h6v1h4v1h-1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9z"/>
-                            </svg>
-                          </button>
-                          {/* Drag handle (dots icon) */}
-                          <button
-                            type="button"
-                            className="shrink-0 cursor-grab rounded p-1.5 transition-colors"
-                            style={{ color: 'var(--color-foreground-subtle)' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                              <circle cx="5" cy="3" r="1.5"/>
-                              <circle cx="11" cy="3" r="1.5"/>
-                              <circle cx="5" cy="8" r="1.5"/>
-                              <circle cx="11" cy="8" r="1.5"/>
-                              <circle cx="5" cy="13" r="1.5"/>
-                              <circle cx="11" cy="13" r="1.5"/>
-                            </svg>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Default condition row when no conditions exist (like Airtable) */}
-                  {filters.conditions.length === 0 && columns.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                        Where
-                      </span>
-                      <select
-                        defaultValue={columns[0]?.id ?? ""}
-                        onChange={(e) => {
-                          const columnId = e.target.value;
-                          const col = columns.find((c) => c.id === columnId);
-                          setFilters((prev) => ({
-                            ...prev,
-                            conditions: [{
-                              columnId,
-                              operator: col?.type === "NUMBER" ? "gt" : "contains",
-                              value: "",
-                            }],
-                          }));
-                        }}
-                        className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
-                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                      >
-                        {columns.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      <select
-                        defaultValue="contains"
-                        onChange={(e) => {
-                          const first = columns[0];
-                          if (!first) return;
-                          setFilters((prev) => ({
-                            ...prev,
-                            conditions: [{
-                              columnId: first.id,
-                              operator: e.target.value as FilterOperator,
-                              value: "",
-                            }],
-                          }));
-                        }}
-                        className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                      >
-                        <option value="contains">contains</option>
-                        <option value="notContains">does not contain</option>
-                        <option value="equals">is</option>
-                        <option value="isEmpty">is empty</option>
-                        <option value="isNotEmpty">is not empty</option>
-                      </select>
-
-                      <input
-                        placeholder="Enter a value"
-                        onChange={(e) => {
-                          const first = columns[0];
-                          if (!first) return;
-                          setFilters((prev) => ({
-                            ...prev,
-                            conditions: [{
-                              columnId: first.id,
-                              operator: "contains",
-                              value: e.target.value,
-                            }],
-                          }));
-                        }}
-                        className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
-                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                        onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
-                        onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
-                      />
-
-                      {/* Delete button (trash icon) */}
-                      <button
-                        type="button"
-                        className="shrink-0 rounded p-1.5 transition-colors"
-                        style={{ color: 'var(--color-foreground-subtle)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M5 2V1h6v1h4v1h-1v11a1 1 0 01-1 1H3a1 1 0 01-1-1V3H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9z"/>
-                        </svg>
-                      </button>
-                      {/* Drag handle (dots icon) */}
-                      <button
-                        type="button"
-                        className="shrink-0 cursor-grab rounded p-1.5 transition-colors"
-                        style={{ color: 'var(--color-foreground-subtle)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                          <circle cx="5" cy="3" r="1.5"/>
-                          <circle cx="11" cy="3" r="1.5"/>
-                          <circle cx="5" cy="8" r="1.5"/>
-                          <circle cx="11" cy="8" r="1.5"/>
-                          <circle cx="5" cy="13" r="1.5"/>
-                          <circle cx="11" cy="13" r="1.5"/>
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const first = columns[0];
-                        if (!first) return;
-                        setFilters((prev) => ({
-                          ...prev,
-                          conditions: [
-                            ...prev.conditions,
-                            {
-                              columnId: first.id,
-                              operator: first.type === "NUMBER" ? "gt" : "contains",
-                              value: "",
-                            },
-                          ],
-                        }));
-                      }}
-                      className="flex items-center gap-1 text-[13px] transition-colors"
-                      style={{ color: 'var(--palette-teal-dark1)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      <span>Add condition</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 text-[13px] transition-colors"
-                      style={{ color: 'var(--color-foreground-subtle)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      <span>Add condition group</span>
-                    </button>
-
-                    {/* Info icon */}
-                    <button
-                      type="button"
-                      className="rounded-full p-0.5 transition-colors"
-                      style={{ color: 'var(--color-foreground-subtle)' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a1 1 0 110 2 1 1 0 010-2zm2 8H6v-1h1V8H6V7h3v4h1v1z" />
-                      </svg>
-                    </button>
-
-                    {/* Spacer */}
-                    <div className="flex-1" />
-
-                    {/* Copy from another view link */}
-                    <button
-                      type="button"
-                      className="text-[13px] transition-colors"
-                      style={{ color: 'var(--color-foreground-subtle)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground-default)'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-foreground-subtle)'}
-                    >
-                      Copy from another view
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {activePanel === "sort" ? (
-                <div className="p-3">
-                  {/* Sort by header with info icon */}
-                  <div className="mb-3 flex items-center gap-1.5">
-                    <span className="text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Sort by</span>
-                    <button
-                      type="button"
-                      className="rounded-full p-0.5 transition-colors"
-                      style={{ color: 'var(--color-foreground-subtle)' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a1 1 0 110 2 1 1 0 010-2zm2 8H6v-1h1V8H6V7h3v4h1v1z" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Sort rows */}
-                  <div className="space-y-2">
-                    {sorts.map((sort, idx) => {
-                      const col = columns.find((c) => c.id === sort.columnId);
-                      const isText = col?.type !== "NUMBER";
-                      return (
-                        <div key={idx} className="flex items-center gap-2">
-                          <select
-                            value={sort.columnId}
-                            onChange={(e) => {
-                              const columnId = e.target.value;
-                              setSorts((prev) =>
-                                prev.map((s, i) => (i === idx ? { ...s, columnId } : s))
-                              );
-                            }}
-                            className="h-8 flex-1 rounded px-2 text-[13px]"
-                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                          >
-                            {columns.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name}
-                              </option>
-                            ))}
-                          </select>
-
-                          <select
-                            value={sort.direction}
-                            onChange={(e) => {
-                              const direction = e.target.value === "desc" ? "desc" : "asc";
-                              setSorts((prev) =>
-                                prev.map((s, i) => (i === idx ? { ...s, direction } : s))
-                              );
-                            }}
-                            className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                          >
-                            <option value="asc">{isText ? 'A → Z' : '1 → 9'}</option>
-                            <option value="desc">{isText ? 'Z → A' : '9 → 1'}</option>
-                          </select>
-
-                          {/* X button to remove sort */}
-                          <button
-                            type="button"
-                            onClick={() => setSorts((prev) => prev.filter((_, i) => i !== idx))}
-                            className="shrink-0 rounded p-1.5 transition-colors"
-                            style={{ color: 'var(--color-foreground-subtle)' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                              <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
-                            </svg>
-                          </button>
-                        </div>
-                      );
-                    })}
-
-                    {/* Default sort row when no sorts exist */}
-                    {sorts.length === 0 && columns.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value=""
-                          onChange={(e) => {
-                            const columnId = e.target.value;
-                            if (columnId) {
-                              setSorts([{ columnId, direction: "asc" }]);
-                            }
-                          }}
-                          className="h-8 flex-1 rounded px-2 text-[13px]"
-                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                        >
-                          <option value="" disabled>Pick a field to sort by</option>
-                          {columns.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <select
-                          value="asc"
-                          disabled
-                          className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
-                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
-                        >
-                          <option value="asc">A → Z</option>
-                          <option value="desc">Z → A</option>
-                        </select>
-
-                        <button
-                          type="button"
-                          disabled
-                          className="shrink-0 rounded p-1.5 opacity-30"
-                          style={{ color: 'var(--color-foreground-subtle)' }}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
-                          </svg>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Add another sort */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const first = columns[0];
-                      if (!first) return;
-                      setSorts((prev) => [...prev, { columnId: first.id, direction: "asc" }]);
-                    }}
-                    className="mt-3 flex items-center gap-1 text-[13px] transition-colors"
-                    style={{ color: 'var(--color-foreground-subtle)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    <span>Add another sort</span>
-                  </button>
-
-                  {/* Divider */}
-                  <div className="my-3 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
-
-                  {/* Automatically sort records toggle */}
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <div
-                      className="relative h-5 w-9 rounded-full transition-colors"
-                      style={{ backgroundColor: 'var(--palette-teal-dusty)' }}
-                    >
-                      <div
-                        className="absolute right-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
-                      />
-                    </div>
-                    <span className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
-                      Automatically sort records
-                    </span>
-                  </label>
-                </div>
-              ) : null}
-
-              {activePanel === "group" ? (
-                <div className="p-3">
-                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Group</div>
-                  <p className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                    Group records by a field to organize your data.
-                  </p>
-                  <select
-                    className="h-8 w-full rounded px-2 text-sm"
-                    style={{ border: '1px solid var(--color-border-default)' }}
-                  >
-                    <option value="">Pick a field to group by</option>
-                    {columns.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
-
-              {activePanel === "color" ? (
-                <div className="p-3">
-                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Color</div>
-                  <p className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                    Apply colors to rows based on field values.
-                  </p>
-                  <div className="space-y-2">
-                    <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <input type="radio" name="colorMode" defaultChecked className="accent-[var(--palette-blue)]" />
-                      <div>
-                        <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>None</div>
-                        <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>No row coloring</div>
-                      </div>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <input type="radio" name="colorMode" className="accent-[var(--palette-blue)]" />
-                      <div>
-                        <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>Select field</div>
-                        <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Color by single select field</div>
-                      </div>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-3 rounded p-2 transition-colors"
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <input type="radio" name="colorMode" className="accent-[var(--palette-blue)]" />
-                      <div>
-                        <div className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>Conditions</div>
-                        <div className="text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>Color rows based on conditions</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              ) : null}
-
-              {activePanel === "tools" ? (
-                <div className="p-3">
-                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>
-                    Tools
-                  </div>
-                  <div className="space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => setActivePanel("rowHeight")}
-                      className="flex w-full items-center justify-between rounded px-3 py-2 text-[13px] transition-colors"
-                      style={{ color: 'var(--color-foreground-default)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <span>Row height</span>
-                      <Icon name="ChevronRight" size={14} className="text-[var(--color-foreground-subtle)]" />
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {activePanel === "rowHeight" ? (
-                <div className="p-3">
-                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Row height</div>
-                  <div className="space-y-1">
-                    {[
-                      { id: 'short' as const, label: 'Short', height: '32px' },
-                      { id: 'medium' as const, label: 'Medium', height: '56px' },
-                      { id: 'tall' as const, label: 'Tall', height: '88px' },
-                      { id: 'extra_tall' as const, label: 'Extra tall', height: '120px' },
-                    ].map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setRowHeight(option.id)}
-                        className="flex w-full items-center gap-3 rounded px-3 py-2 text-[13px] transition-colors"
-                        style={{
-                          backgroundColor: rowHeight === option.id ? 'var(--color-background-selected-blue)' : 'transparent',
-                          color: rowHeight === option.id ? 'var(--palette-blue)' : 'var(--color-foreground-default)'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (rowHeight !== option.id) e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (rowHeight !== option.id) e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-                        </svg>
-                        <span>{option.label}</span>
-                        <span className="ml-auto text-[12px]" style={{ color: 'var(--color-foreground-subtle)' }}>{option.height}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
           {/* Grid */}
           <div
             className="min-h-0 flex-1"

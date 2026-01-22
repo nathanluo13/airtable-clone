@@ -630,7 +630,10 @@ export function AirtableGrid(props: {
       header: () => (
         <div
           className="flex h-full w-full items-center justify-center"
-          style={{ backgroundColor: 'white' }}
+          style={{
+            backgroundColor: 'white',
+            borderBottom: '1px solid var(--color-border-cell-bottom)'
+          }}
         >
           <input
             type="checkbox"
@@ -649,7 +652,8 @@ export function AirtableGrid(props: {
             className="group relative flex h-full w-full items-center justify-center text-[11px]"
             style={{
               color: 'var(--palette-gray-500)',
-              backgroundColor: 'white'
+              backgroundColor: 'white',
+              borderBottom: '1px solid var(--color-border-cell-bottom)'
             }}
           >
             {/* Checkbox - shown when any row is selected or on hover */}
@@ -685,13 +689,19 @@ export function AirtableGrid(props: {
       header: () => (
         <div
           className="flex h-full w-full items-center justify-center"
-          style={{ backgroundColor: 'white' }}
+          style={{
+            backgroundColor: 'white',
+            borderBottom: '1px solid var(--color-border-cell-bottom)'
+          }}
         />
       ),
       cell: ({ row }: any) => (
         <div
           className="group flex h-full w-full items-center justify-center"
-          style={{ backgroundColor: 'white' }}
+          style={{
+            backgroundColor: 'white',
+            borderBottom: '1px solid var(--color-border-cell-bottom)'
+          }}
         >
           <button
             type="button"
@@ -727,7 +737,11 @@ export function AirtableGrid(props: {
         header: () => (
           <div
             className="group relative flex h-full w-full cursor-pointer items-center gap-2 truncate px-2 text-[13px] font-normal"
-            style={{ color: 'var(--color-foreground-default)', backgroundColor: 'white' }}
+            style={{
+              color: 'var(--color-foreground-default)',
+              backgroundColor: 'white',
+              borderBottom: '1px solid var(--color-border-cell-bottom)'
+            }}
             onClick={() => setColumnMenuId(columnMenuId === col.id ? null : col.id)}
           >
             {/* Field type icon */}
@@ -788,7 +802,10 @@ export function AirtableGrid(props: {
       header: () => (
         <div
           className="flex h-full items-center justify-center"
-          style={{ backgroundColor: 'white' }}
+          style={{
+            backgroundColor: 'white',
+            borderBottom: '1px solid var(--color-border-cell-bottom)'
+          }}
         >
           <button
             type="button"
@@ -834,34 +851,49 @@ export function AirtableGrid(props: {
     overscan: 10,
   });
 
+  // Use virtualizer's scroll state to trigger infinite loading
+  const virtualItems = rowVirtualizer.getVirtualItems();
+  const lastItem = virtualItems[virtualItems.length - 1];
   useEffect(() => {
-    const items = rowVirtualizer.getVirtualItems();
-    const last = items[items.length - 1];
-    if (!last) return;
+    if (!lastItem) return;
 
     if (
-      last.index >= rows.length - 1 &&
+      lastItem.index >= rows.length - 1 &&
       rowsQuery.hasNextPage &&
       !rowsQuery.isFetchingNextPage
     ) {
       void rowsQuery.fetchNextPage();
     }
   }, [
-    rowVirtualizer.getVirtualItems(),
+    lastItem?.index,
     rows.length,
     rowsQuery.hasNextPage,
     rowsQuery.isFetchingNextPage,
     rowsQuery.fetchNextPage,
   ]);
 
+  // Track previous focused value to only scroll on actual focus changes
+  const prevFocused = useRef(focused);
   useEffect(() => {
-    if (!focused) return;
-    rowVirtualizer.scrollToIndex(focused.rowIndex, { align: "auto" });
+    if (!focused) {
+      prevFocused.current = null;
+      return;
+    }
+
+    // Only scroll if focused actually changed, not just when rows updated
+    const didFocusChange = !prevFocused.current ||
+      prevFocused.current.rowIndex !== focused.rowIndex ||
+      prevFocused.current.columnId !== focused.columnId;
+
+    if (didFocusChange) {
+      rowVirtualizer.scrollToIndex(focused.rowIndex, { align: "auto" });
+    }
+    prevFocused.current = focused;
 
     const row = rows[focused.rowIndex];
     if (!row) return;
     const el = document.getElementById(`cell-${row.id}-${focused.columnId}`);
-    if (el instanceof HTMLElement) {
+    if (el instanceof HTMLElement && didFocusChange) {
       el.focus();
     }
   }, [focused, rows, rowVirtualizer]);
@@ -907,12 +939,18 @@ export function AirtableGrid(props: {
     }
   };
 
-  // Ensure we always have a focused cell when data arrives.
+  // Ensure we always have a focused cell on initial load only (not during infinite scroll).
+  const initialFocusSet = useRef(false);
   useEffect(() => {
-    if (focused) return;
+    if (initialFocusSet.current) return;
+    if (focused) {
+      initialFocusSet.current = true;
+      return;
+    }
     if (rows.length === 0) return;
     const first = focusableColumnIds[0];
     if (!first) return;
+    initialFocusSet.current = true;
     setFocused({ rowIndex: 0, columnId: first });
   }, [rows.length, focusableColumnIds, focused]);
 
@@ -941,7 +979,6 @@ export function AirtableGrid(props: {
   }
 
   const tableRows = table.getRowModel().rows;
-  const virtualItems = rowVirtualizer.getVirtualItems();
 
   return (
     <GridContext.Provider
@@ -958,13 +995,12 @@ export function AirtableGrid(props: {
         columns,
       }}
     >
-      <div className="relative flex h-full flex-col">
+      <div className="relative flex h-full flex-col" style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}>
       <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={onKeyDown}
         className="min-h-0 flex-1 overflow-auto outline-none"
-        style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
       >
         <div style={{ width: table.getTotalSize() }}>
           {/* Header */}
@@ -1096,59 +1132,61 @@ export function AirtableGrid(props: {
               );
             })}
           </div>
+
+          {/* Pinned Footer Row - sticky at bottom, record count only */}
+          <div
+            className="sticky bottom-0 z-10 flex items-center text-[12px] px-2"
+            style={{
+              height: 24,
+              backgroundColor: 'var(--palette-neutral-lightGray1)',
+              color: 'var(--color-foreground-subtle)',
+            }}
+          >
+            {totalCount === null
+              ? ""
+              : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
+            {rowsQuery.isFetchingNextPage ? " · Loading…" : ""}
+          </div>
         </div>
       </div>
 
       {/* Floating Action Pill - absolutely positioned over the grid */}
       <div
-        className="absolute bottom-2 left-2 z-20 flex flex-col gap-0.5"
+        className="absolute bottom-8 left-2 z-20 flex items-center rounded-full overflow-hidden"
+        style={{
+          border: '1px solid var(--color-border-default)',
+          backgroundColor: 'var(--color-background-default)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        }}
       >
-        {/* Pill dock with buttons */}
-        <div
-          className="flex items-center rounded-full overflow-hidden"
-          style={{
-            border: '1px solid var(--color-border-default)',
-            backgroundColor: 'var(--color-background-default)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          }}
+        {/* Add row button */}
+        <button
+          type="button"
+          className="flex items-center justify-center px-2.5 py-1.5 transition-colors"
+          style={{ color: 'var(--color-foreground-subtle)' }}
+          disabled={addRow.isPending}
+          onClick={() => addRow.mutate({ tableId })}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          aria-label="Add row"
         >
-          {/* Add row button */}
-          <button
-            type="button"
-            className="flex items-center justify-center px-2.5 py-1.5 transition-colors rounded-l-full"
-            style={{ color: 'var(--color-foreground-subtle)' }}
-            disabled={addRow.isPending}
-            onClick={() => addRow.mutate({ tableId })}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            aria-label="Add row"
-          >
-            <Icon name="Plus" size={16} />
-          </button>
+          <Icon name="Plus" size={16} />
+        </button>
 
-          {/* Divider */}
-          <div className="h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+        {/* Divider */}
+        <div className="h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
 
-          {/* Scissors/Add button */}
-          <button
-            type="button"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] transition-colors rounded-r-full"
-            style={{ color: 'var(--color-foreground-subtle)' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <Icon name="Scissors" size={14} />
-            <span>Add...</span>
-          </button>
-        </div>
-
-        {/* Record count - below the pill */}
-        <div className="text-[12px] px-1" style={{ color: 'var(--color-foreground-subtle)' }}>
-          {totalCount === null
-            ? ""
-            : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
-          {rowsQuery.isFetchingNextPage ? " · Loading…" : ""}
-        </div>
+        {/* Scissors/Add button */}
+        <button
+          type="button"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] transition-colors"
+          style={{ color: 'var(--color-foreground-subtle)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <Icon name="Scissors" size={14} />
+          <span>Add...</span>
+        </button>
       </div>
       </div>
 

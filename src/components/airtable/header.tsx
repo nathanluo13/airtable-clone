@@ -24,7 +24,7 @@ export function Header({ baseName, baseColor, baseIcon, onBaseSettingsClick, bac
 
   return (
     <header
-      className="flex items-center justify-between px-4"
+      className="relative flex items-center px-4"
       style={{
         height: "var(--header-height)",
         minHeight: "var(--header-height)",
@@ -33,7 +33,7 @@ export function Header({ baseName, baseColor, baseIcon, onBaseSettingsClick, bac
       }}
     >
       {/* Left Section: Base Icon + Base Name (no separate logo - it's in the rail) */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 z-10">
         {/* Base Name Dropdown with large green icon */}
         <button
           type="button"
@@ -60,8 +60,8 @@ export function Header({ baseName, baseColor, baseIcon, onBaseSettingsClick, bac
         </button>
       </div>
 
-      {/* Center Section: Navigation Tabs */}
-      <nav className="flex items-center gap-1">
+      {/* Center Section: Navigation Tabs - Absolutely centered */}
+      <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -97,7 +97,7 @@ export function Header({ baseName, baseColor, baseIcon, onBaseSettingsClick, bac
       </nav>
 
       {/* Right Section: Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ml-auto z-10">
         {/* History Button */}
         <button
           type="button"
@@ -117,11 +117,11 @@ export function Header({ baseName, baseColor, baseIcon, onBaseSettingsClick, bac
           type="button"
           className="rounded-full px-3 py-1 text-[12px] font-medium transition-colors"
           style={{
-            backgroundColor: "var(--color-background-notice)",
-            color: "var(--palette-yellow-dark1)",
+            backgroundColor: "var(--palette-neutral-lightGray2)",
+            color: "var(--color-foreground-default)",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-neutral-lightGray1)")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-neutral-lightGray2)")}
         >
           Trial: 14 days left
         </button>
