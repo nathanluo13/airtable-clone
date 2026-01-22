@@ -624,16 +624,13 @@ export function AirtableGrid(props: {
   };
 
   const columnDefs = useMemo<ColumnDef<RowData>[]>(() => {
-    // Combined row number column with select-all in header (like Airtable)
+    // Row number column with select-all checkbox in header
     const rowNumWithSelect: ColumnDef<RowData> = {
       id: "__rownum",
       header: () => (
         <div
           className="flex h-full w-full items-center justify-center"
-          style={{
-            backgroundColor: 'white',
-            borderRight: '1px solid var(--color-border-cell)'
-          }}
+          style={{ backgroundColor: 'white' }}
         >
           <input
             type="checkbox"
@@ -649,11 +646,10 @@ export function AirtableGrid(props: {
         const hasAnySelected = selectedRows.size > 0;
         return (
           <div
-            className="group relative flex h-full w-full items-center justify-end pr-2 text-[11px]"
+            className="group relative flex h-full w-full items-center justify-center text-[11px]"
             style={{
               color: 'var(--palette-gray-500)',
-              backgroundColor: 'white',
-              borderRight: '1px solid var(--color-border-cell)'
+              backgroundColor: 'white'
             }}
           >
             {/* Checkbox - shown when any row is selected or on hover */}
@@ -662,7 +658,7 @@ export function AirtableGrid(props: {
               checked={isSelected}
               onChange={() => toggleRowSelection(row.original.id)}
               className={
-                "absolute left-1/2 -translate-x-1/2 h-4 w-4 cursor-pointer rounded border-gray-300 transition-opacity " +
+                "absolute h-4 w-4 cursor-pointer rounded border-gray-300 transition-opacity " +
                 (hasAnySelected || isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100")
               }
               style={{ accentColor: 'var(--palette-blue)' }}
@@ -679,29 +675,23 @@ export function AirtableGrid(props: {
           </div>
         );
       },
-      size: 66,
+      size: 44,
       enableResizing: false,
     };
 
-    // Expand button column - separate white button on hover
+    // Expand button column
     const expandCol: ColumnDef<RowData> = {
       id: "__expand",
       header: () => (
         <div
           className="flex h-full w-full items-center justify-center"
-          style={{
-            backgroundColor: 'white',
-            borderRight: '1px solid var(--color-border-cell)'
-          }}
+          style={{ backgroundColor: 'white' }}
         />
       ),
       cell: ({ row }: any) => (
         <div
           className="group flex h-full w-full items-center justify-center"
-          style={{
-            backgroundColor: 'white',
-            borderRight: '1px solid var(--color-border-cell)'
-          }}
+          style={{ backgroundColor: 'white' }}
         >
           <button
             type="button"
@@ -968,7 +958,7 @@ export function AirtableGrid(props: {
         columns,
       }}
     >
-      <div className="flex h-full flex-col">
+      <div className="relative flex h-full flex-col">
       <div
         ref={containerRef}
         tabIndex={0}
@@ -988,47 +978,50 @@ export function AirtableGrid(props: {
           >
             {table.getHeaderGroups().map((hg) => (
               <div key={hg.id} className="flex" style={{ height }}>
-                {hg.headers.map((header) => (
-                  <div
-                    key={header.id}
-                    className="relative flex items-center"
-                    style={{
-                      width: header.getSize(),
-                      height,
-                      borderRight: '1px solid var(--color-border-cell)'
-                    }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                {hg.headers.map((header) => {
+                  const isLeftPaneCol = header.column.id === '__rownum' || header.column.id === '__expand';
+                  return (
+                    <div
+                      key={header.id}
+                      className="relative flex items-center"
+                      style={{
+                        width: header.getSize(),
+                        height,
+                        borderRight: isLeftPaneCol ? 'none' : '1px solid var(--color-border-cell)'
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
 
-                    {header.column.getCanResize() ? (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className="absolute right-0 top-0 h-full w-1 cursor-col-resize transition-colors"
-                        style={{
-                          backgroundColor: header.column.getIsResizing()
-                            ? 'var(--palette-blue)'
-                            : 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!header.column.getIsResizing()) {
-                            e.currentTarget.style.backgroundColor = 'var(--palette-gray-200)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!header.column.getIsResizing()) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                ))}
+                      {header.column.getCanResize() ? (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="absolute right-0 top-0 h-full w-1 cursor-col-resize transition-colors"
+                          style={{
+                            backgroundColor: header.column.getIsResizing()
+                              ? 'var(--palette-blue)'
+                              : 'transparent'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!header.column.getIsResizing()) {
+                              e.currentTarget.style.backgroundColor = 'var(--palette-gray-200)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!header.column.getIsResizing()) {
+                              e.currentTarget.style.backgroundColor = 'transparent';
+                            }
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -1083,18 +1076,21 @@ export function AirtableGrid(props: {
                           : "No records"}
                     </div>
                   ) : (
-                    row!.getVisibleCells().map((cell) => (
-                      <div
-                        key={cell.id}
-                        style={{
-                          width: cell.column.getSize(),
-                          height: virtualRow.size,
-                          borderRight: '1px solid var(--color-border-cell)'
-                        }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </div>
-                    ))
+                    row!.getVisibleCells().map((cell) => {
+                      const isLeftPaneCol = cell.column.id === '__rownum' || cell.column.id === '__expand';
+                      return (
+                        <div
+                          key={cell.id}
+                          style={{
+                            width: cell.column.getSize(),
+                            height: virtualRow.size,
+                            borderRight: isLeftPaneCol ? 'none' : '1px solid var(--color-border-cell)'
+                          }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               );
@@ -1103,44 +1099,51 @@ export function AirtableGrid(props: {
         </div>
       </div>
 
-      {/* Bottom Action Bar */}
+      {/* Floating Action Pill - absolutely positioned over the grid */}
       <div
-        className="flex items-center gap-2 px-2"
-        style={{
-          height: '32px',
-          minHeight: '32px',
-          backgroundColor: 'var(--palette-neutral-white)',
-          borderTop: '1px solid var(--color-border-cell-bottom)',
-        }}
+        className="absolute bottom-2 left-2 z-20 flex flex-col gap-0.5"
       >
-        {/* Add row button */}
-        <button
-          type="button"
-          className="flex items-center justify-center rounded p-1 transition-colors"
-          style={{ color: 'var(--color-foreground-subtle)' }}
-          disabled={addRow.isPending}
-          onClick={() => addRow.mutate({ tableId })}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          aria-label="Add row"
+        {/* Pill dock with buttons */}
+        <div
+          className="flex items-center rounded-full overflow-hidden"
+          style={{
+            border: '1px solid var(--color-border-default)',
+            backgroundColor: 'var(--color-background-default)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          }}
         >
-          <Icon name="Plus" size={16} />
-        </button>
+          {/* Add row button */}
+          <button
+            type="button"
+            className="flex items-center justify-center px-2.5 py-1.5 transition-colors rounded-l-full"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            disabled={addRow.isPending}
+            onClick={() => addRow.mutate({ tableId })}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            aria-label="Add row"
+          >
+            <Icon name="Plus" size={16} />
+          </button>
 
-        {/* Scissors/Add button */}
-        <button
-          type="button"
-          className="flex items-center gap-1 rounded px-2 py-1 text-[13px] transition-colors"
-          style={{ color: 'var(--color-foreground-subtle)' }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-        >
-          <Icon name="Scissors" size={14} />
-          <span>Add...</span>
-        </button>
+          {/* Divider */}
+          <div className="h-4 w-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
 
-        {/* Record count */}
-        <div className="text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+          {/* Scissors/Add button */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-[13px] transition-colors rounded-r-full"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <Icon name="Scissors" size={14} />
+            <span>Add...</span>
+          </button>
+        </div>
+
+        {/* Record count - below the pill */}
+        <div className="text-[12px] px-1" style={{ color: 'var(--color-foreground-subtle)' }}>
           {totalCount === null
             ? ""
             : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}

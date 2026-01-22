@@ -743,12 +743,12 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
             >
               {activePanel === "hide" ? (
                 <div className="p-3">
-                  <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Hide fields</div>
+                  {/* Search input */}
                   <input
                     value={hideSearch}
                     onChange={(e) => setHideSearch(e.target.value)}
                     placeholder="Find a field"
-                    className="mb-3 h-8 w-full rounded px-3 text-sm outline-none"
+                    className="mb-2 h-8 w-full rounded px-3 text-[13px] outline-none"
                     style={{
                       border: '1px solid var(--color-border-default)',
                       backgroundColor: 'var(--color-background-default)'
@@ -756,40 +756,113 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                     onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
                     onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
                   />
+
+                  {/* Field list with toggles */}
                   <div className="max-h-64 overflow-auto">
                     {columns
                       .filter((c) =>
                         c.name.toLowerCase().includes(hideSearch.toLowerCase())
                       )
-                      .map((c) => (
-                        <label
-                          key={c.id}
-                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 transition-colors"
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={columnVisibility[c.id] !== false}
-                            onChange={() =>
+                      .map((c) => {
+                        const isVisible = columnVisibility[c.id] !== false;
+                        const fieldIcon = c.type === "NUMBER" ? "Hash" : "TextAa";
+                        return (
+                          <div
+                            key={c.id}
+                            className="flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors"
+                            onClick={() =>
                               setColumnVisibility((prev) => ({
                                 ...prev,
                                 [c.id]: prev[c.id] === false,
                               }))
                             }
-                          />
-                          <span className="text-sm">{c.name}</span>
-                        </label>
-                      ))}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            {/* Toggle switch */}
+                            <div
+                              className="relative h-4 w-7 shrink-0 rounded-full transition-colors"
+                              style={{
+                                backgroundColor: isVisible ? 'var(--palette-teal-dusty)' : 'var(--palette-gray-300)'
+                              }}
+                            >
+                              <div
+                                className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all"
+                                style={{
+                                  left: isVisible ? '14px' : '2px'
+                                }}
+                              />
+                            </div>
+                            {/* Field icon */}
+                            <Icon name={fieldIcon} size={14} className="shrink-0 text-[var(--color-foreground-subtle)]" />
+                            {/* Field name */}
+                            <span className="flex-1 truncate text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
+                              {c.name}
+                            </span>
+                            {/* Drag handle */}
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="var(--color-foreground-subtle)" className="shrink-0 opacity-40">
+                              <circle cx="5" cy="4" r="1.5"/>
+                              <circle cx="11" cy="4" r="1.5"/>
+                              <circle cx="5" cy="8" r="1.5"/>
+                              <circle cx="11" cy="8" r="1.5"/>
+                              <circle cx="5" cy="12" r="1.5"/>
+                              <circle cx="11" cy="12" r="1.5"/>
+                            </svg>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* Hide all / Show all buttons */}
+                  <div className="mt-2 flex gap-2 border-t pt-2" style={{ borderColor: 'var(--color-border-default)' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allHidden: Record<string, boolean> = {};
+                        columns.forEach((c) => { allHidden[c.id] = false; });
+                        setColumnVisibility(allHidden);
+                      }}
+                      className="flex-1 rounded py-1.5 text-[13px] transition-colors"
+                      style={{
+                        border: '1px solid var(--color-border-default)',
+                        color: 'var(--color-foreground-default)',
+                        backgroundColor: 'var(--color-background-default)'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}
+                    >
+                      Hide all
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allVisible: Record<string, boolean> = {};
+                        columns.forEach((c) => { allVisible[c.id] = true; });
+                        setColumnVisibility(allVisible);
+                      }}
+                      className="flex-1 rounded py-1.5 text-[13px] transition-colors"
+                      style={{
+                        border: '1px solid var(--color-border-default)',
+                        color: 'var(--color-foreground-default)',
+                        backgroundColor: 'var(--color-background-default)'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-background-default)'}
+                    >
+                      Show all
+                    </button>
                   </div>
                 </div>
               ) : null}
 
               {activePanel === "filter" ? (
                 <div className="p-3">
+                  {/* Filter Header */}
+                  <div className="mb-3 text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Filter</div>
+
                   {/* AI Input */}
                   <div
-                    className="mb-3 flex items-center gap-2 rounded px-3 py-2"
+                    className="mb-3 flex items-center gap-2 rounded-md px-3 py-2"
                     style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--color-foreground-ai)">
@@ -799,42 +872,12 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                       type="text"
                       placeholder="Describe what you want to see"
                       className="flex-1 bg-transparent text-[13px] outline-none"
-                      style={{ color: 'var(--color-foreground-default)' }}
+                      style={{ color: 'var(--color-foreground-subtle)' }}
                     />
                   </div>
 
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Filter</div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={filters.conjunction}
-                        onChange={(e) =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            conjunction: e.target.value === "or" ? "or" : "and",
-                          }))
-                        }
-                        className="h-7 rounded px-2 text-[13px]"
-                        style={{ border: '1px solid var(--color-border-default)' }}
-                      >
-                        <option value="and">AND</option>
-                        <option value="or">OR</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => setFilters(defaultFilters)}
-                        className="rounded px-2 py-1 text-[13px] transition-colors"
-                        style={{ color: 'var(--color-foreground-subtle)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-
                   {/* "In this view, show records" text - matches Airtable */}
-                  <div className="mb-2 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                  <div className="mb-3 text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
                     In this view, show records
                   </div>
 
@@ -847,10 +890,27 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
 
                       return (
                         <div key={idx} className="flex items-center gap-2">
-                          {/* "Where" label for first condition, "And/Or" for subsequent */}
-                          <span className="w-[40px] text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
-                            {idx === 0 ? 'Where' : filters.conjunction === 'and' ? 'and' : 'or'}
-                          </span>
+                          {/* "Where" label for first condition, conjunction dropdown for subsequent */}
+                          {idx === 0 ? (
+                            <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                              Where
+                            </span>
+                          ) : (
+                            <select
+                              value={filters.conjunction}
+                              onChange={(e) =>
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  conjunction: e.target.value === "or" ? "or" : "and",
+                                }))
+                              }
+                              className="h-8 w-[52px] shrink-0 rounded border-0 bg-transparent px-0 text-[13px]"
+                              style={{ color: 'var(--color-foreground-subtle)' }}
+                            >
+                              <option value="and">and</option>
+                              <option value="or">or</option>
+                            </select>
+                          )}
                           <select
                             value={f.columnId}
                             onChange={(e) => {
@@ -869,8 +929,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                                 ),
                               }));
                             }}
-                            className="h-8 min-w-[80px] rounded px-2 text-sm"
-                            style={{ border: '1px solid var(--color-border-default)' }}
+                            className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
+                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                           >
                             <option value="" disabled>
                               Field
@@ -893,8 +953,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                                 ),
                               }));
                             }}
-                            className="h-8 min-w-[90px] rounded px-2 text-sm"
-                            style={{ border: '1px solid var(--color-border-default)' }}
+                            className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                           >
                             {ops.map((o) => (
                               <option key={o.value} value={o.value}>
@@ -920,8 +980,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                                   ),
                                 }));
                               }}
-                              className="h-8 min-w-[100px] flex-1 rounded px-2 text-sm outline-none"
-                              style={{ border: '1px solid var(--color-border-default)' }}
+                              className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
+                              style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                               onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
                               onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
                             />
@@ -936,7 +996,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                                 conditions: prev.conditions.filter((_, i) => i !== idx),
                               }))
                             }
-                            className="rounded p-1 transition-colors"
+                            className="shrink-0 rounded p-1.5 transition-colors"
                             style={{ color: 'var(--color-foreground-subtle)' }}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -948,7 +1008,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                           {/* Drag handle (dots icon) */}
                           <button
                             type="button"
-                            className="cursor-grab rounded p-1 transition-colors"
+                            className="shrink-0 cursor-grab rounded p-1.5 transition-colors"
                             style={{ color: 'var(--color-foreground-subtle)' }}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -970,7 +1030,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                   {/* Default condition row when no conditions exist (like Airtable) */}
                   {filters.conditions.length === 0 && columns.length > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="w-[40px] text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+                      <span className="w-[52px] shrink-0 text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
                         Where
                       </span>
                       <select
@@ -987,8 +1047,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                             }],
                           }));
                         }}
-                        className="h-8 min-w-[80px] rounded px-2 text-sm"
-                        style={{ border: '1px solid var(--color-border-default)' }}
+                        className="h-8 w-[90px] shrink-0 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                       >
                         {columns.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -1011,13 +1071,12 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                             }],
                           }));
                         }}
-                        className="h-8 min-w-[90px] rounded px-2 text-sm"
-                        style={{ border: '1px solid var(--color-border-default)' }}
+                        className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                       >
                         <option value="contains">contains</option>
-                        <option value="doesNotContain">does not contain</option>
-                        <option value="is">is</option>
-                        <option value="isNot">is not</option>
+                        <option value="notContains">does not contain</option>
+                        <option value="equals">is</option>
                         <option value="isEmpty">is empty</option>
                         <option value="isNotEmpty">is not empty</option>
                       </select>
@@ -1036,8 +1095,8 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                             }],
                           }));
                         }}
-                        className="h-8 min-w-[100px] flex-1 rounded px-2 text-sm outline-none"
-                        style={{ border: '1px solid var(--color-border-default)' }}
+                        className="h-8 min-w-[80px] flex-1 rounded px-2 text-[13px] outline-none"
+                        style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
                         onFocus={(e) => e.currentTarget.style.borderColor = 'var(--palette-blue)'}
                         onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-border-default)'}
                       />
@@ -1045,7 +1104,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                       {/* Delete button (trash icon) */}
                       <button
                         type="button"
-                        className="rounded p-1 transition-colors"
+                        className="shrink-0 rounded p-1.5 transition-colors"
                         style={{ color: 'var(--color-foreground-subtle)' }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -1057,7 +1116,7 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                       {/* Drag handle (dots icon) */}
                       <button
                         type="button"
-                        className="cursor-grab rounded p-1 transition-colors"
+                        className="shrink-0 cursor-grab rounded p-1.5 transition-colors"
                         style={{ color: 'var(--color-foreground-subtle)' }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -1074,54 +1133,63 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
                     </div>
                   )}
 
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const first = columns[0];
-                          if (!first) return;
-                          setFilters((prev) => ({
-                            ...prev,
-                            conditions: [
-                              ...prev.conditions,
-                              {
-                                columnId: first.id,
-                                operator: first.type === "NUMBER" ? "gt" : "contains",
-                                value: "",
-                              },
-                            ],
-                          }));
-                        }}
-                        className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                        style={{ color: 'var(--palette-teal-dark1)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                        <span>Add condition</span>
-                      </button>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const first = columns[0];
+                        if (!first) return;
+                        setFilters((prev) => ({
+                          ...prev,
+                          conditions: [
+                            ...prev.conditions,
+                            {
+                              columnId: first.id,
+                              operator: first.type === "NUMBER" ? "gt" : "contains",
+                              value: "",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="flex items-center gap-1 text-[13px] transition-colors"
+                      style={{ color: 'var(--palette-teal-dark1)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                      <span>Add condition</span>
+                    </button>
 
-                      <button
-                        type="button"
-                        className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
-                        style={{ color: 'var(--color-foreground-subtle)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                          <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                        <span>Add condition group</span>
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7v-2h2v2zm0-4H7V4h2v4z" />
-                        </svg>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-[13px] transition-colors"
+                      style={{ color: 'var(--color-foreground-subtle)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                      <span>Add condition group</span>
+                    </button>
 
-                    {/* Copy from another view link - matches Airtable */}
+                    {/* Info icon */}
+                    <button
+                      type="button"
+                      className="rounded-full p-0.5 transition-colors"
+                      style={{ color: 'var(--color-foreground-subtle)' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a1 1 0 110 2 1 1 0 010-2zm2 8H6v-1h1V8H6V7h3v4h1v1z" />
+                      </svg>
+                    </button>
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* Copy from another view link */}
                     <button
                       type="button"
                       className="text-[13px] transition-colors"
@@ -1137,54 +1205,159 @@ export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
 
               {activePanel === "sort" ? (
                 <div className="p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="text-sm font-semibold" style={{ color: 'var(--color-foreground-default)' }}>Sort</div>
+                  {/* Sort by header with info icon */}
+                  <div className="mb-3 flex items-center gap-1.5">
+                    <span className="text-[14px] font-medium" style={{ color: 'var(--color-foreground-default)' }}>Sort by</span>
                     <button
                       type="button"
-                      onClick={() => setSorts([])}
-                      className="rounded px-2 py-1 text-sm transition-colors"
+                      className="rounded-full p-0.5 transition-colors"
                       style={{ color: 'var(--color-foreground-subtle)' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      Clear
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a1 1 0 110 2 1 1 0 010-2zm2 8H6v-1h1V8H6V7h3v4h1v1z" />
+                      </svg>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={sorts[0]?.columnId ?? ""}
-                      onChange={(e) => {
-                        const columnId = e.target.value;
-                        setSorts(columnId ? [{ columnId, direction: "asc" }] : []);
-                      }}
-                      className="h-8 w-[240px] rounded px-2 text-sm"
-                      style={{ border: '1px solid var(--color-border-default)' }}
-                    >
-                      <option value="">Field</option>
-                      {columns.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                  {/* Sort rows */}
+                  <div className="space-y-2">
+                    {sorts.map((sort, idx) => {
+                      const col = columns.find((c) => c.id === sort.columnId);
+                      const isText = col?.type !== "NUMBER";
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <select
+                            value={sort.columnId}
+                            onChange={(e) => {
+                              const columnId = e.target.value;
+                              setSorts((prev) =>
+                                prev.map((s, i) => (i === idx ? { ...s, columnId } : s))
+                              );
+                            }}
+                            className="h-8 flex-1 rounded px-2 text-[13px]"
+                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                          >
+                            {columns.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </select>
 
-                    <select
-                      value={sorts[0]?.direction ?? "asc"}
-                      onChange={(e) => {
-                        const direction = e.target.value === "desc" ? "desc" : "asc";
-                        setSorts((prev) =>
-                          prev.length ? [{ ...prev[0]!, direction }] : prev
-                        );
-                      }}
-                      className="h-8 w-[160px] rounded px-2 text-sm"
-                      style={{ border: '1px solid var(--color-border-default)' }}
-                      disabled={!sorts.length}
-                    >
-                      <option value="asc">Ascending</option>
-                      <option value="desc">Descending</option>
-                    </select>
+                          <select
+                            value={sort.direction}
+                            onChange={(e) => {
+                              const direction = e.target.value === "desc" ? "desc" : "asc";
+                              setSorts((prev) =>
+                                prev.map((s, i) => (i === idx ? { ...s, direction } : s))
+                              );
+                            }}
+                            className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                            style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                          >
+                            <option value="asc">{isText ? 'A → Z' : '1 → 9'}</option>
+                            <option value="desc">{isText ? 'Z → A' : '9 → 1'}</option>
+                          </select>
+
+                          {/* X button to remove sort */}
+                          <button
+                            type="button"
+                            onClick={() => setSorts((prev) => prev.filter((_, i) => i !== idx))}
+                            className="shrink-0 rounded p-1.5 transition-colors"
+                            style={{ color: 'var(--color-foreground-subtle)' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Default sort row when no sorts exist */}
+                    {sorts.length === 0 && columns.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const columnId = e.target.value;
+                            if (columnId) {
+                              setSorts([{ columnId, direction: "asc" }]);
+                            }
+                          }}
+                          className="h-8 flex-1 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="" disabled>Pick a field to sort by</option>
+                          {columns.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <select
+                          value="asc"
+                          disabled
+                          className="h-8 w-[100px] shrink-0 rounded px-2 text-[13px]"
+                          style={{ border: '1px solid var(--color-border-default)', backgroundColor: 'var(--color-background-default)' }}
+                        >
+                          <option value="asc">A → Z</option>
+                          <option value="desc">Z → A</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          disabled
+                          className="shrink-0 rounded p-1.5 opacity-30"
+                          style={{ color: 'var(--color-foreground-subtle)' }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M4.646 4.646a.5.5 0 01.708 0L8 7.293l2.646-2.647a.5.5 0 01.708.708L8.707 8l2.647 2.646a.5.5 0 01-.708.708L8 8.707l-2.646 2.647a.5.5 0 01-.708-.708L7.293 8 4.646 5.354a.5.5 0 010-.708z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Add another sort */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const first = columns[0];
+                      if (!first) return;
+                      setSorts((prev) => [...prev, { columnId: first.id, direction: "asc" }]);
+                    }}
+                    className="mt-3 flex items-center gap-1 text-[13px] transition-colors"
+                    style={{ color: 'var(--color-foreground-subtle)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    <span>Add another sort</span>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="my-3 h-px" style={{ backgroundColor: 'var(--color-border-default)' }} />
+
+                  {/* Automatically sort records toggle */}
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <div
+                      className="relative h-5 w-9 rounded-full transition-colors"
+                      style={{ backgroundColor: 'var(--palette-teal-dusty)' }}
+                    >
+                      <div
+                        className="absolute right-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform"
+                      />
+                    </div>
+                    <span className="text-[13px]" style={{ color: 'var(--color-foreground-default)' }}>
+                      Automatically sort records
+                    </span>
+                  </label>
                 </div>
               ) : null}
 
