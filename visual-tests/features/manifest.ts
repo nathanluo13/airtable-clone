@@ -12,7 +12,7 @@
  */
 
 export interface ClickStep {
-  action: 'goto' | 'click' | 'hover' | 'wait' | 'type' | 'press';
+  action: 'goto' | 'click' | 'hover' | 'wait' | 'waitForSelector' | 'type' | 'press';
   target?: string; // selector or URL
   value?: string | number; // for type/wait
 }
@@ -56,7 +56,7 @@ export const FEATURES: Feature[] = [
     page: 'home',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.home },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
     ],
     screenshotTarget: 'viewport',
     maskSelectors: [
@@ -74,7 +74,7 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
     ],
     screenshotTarget: 'viewport',
     maskSelectors: [
@@ -92,9 +92,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Filter rows"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Filter dropdown panel with "Add condition" button',
@@ -107,11 +107,11 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Filter rows"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
       { action: 'click', target: '[role="button"]:has-text("Add condition")' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Filter panel with field/operator/value row',
@@ -124,9 +124,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Sort rows"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Sort panel with field picker',
@@ -139,9 +139,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Hide fields"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Hide fields panel with toggle switches',
@@ -154,9 +154,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Group rows"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Group panel with field picker',
@@ -169,9 +169,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: '[role="button"][aria-label="Row colors"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Color panel with Select field / Conditions options',
@@ -186,12 +186,12 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       // Hover over the first column header cell to reveal menu button
       { action: 'hover', target: '.cell.header.primary' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
       { action: 'click', target: '[data-tutorial-selector-id="openColumnMenuButton"]' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Column header dropdown with Edit, Sort, Filter, Delete options',
@@ -204,9 +204,9 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       { action: 'click', target: 'button:has-text("Create new")' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
     ],
     screenshotTarget: 'viewport',
     notes: 'View creation menu with Grid, Calendar, Gallery, etc.',
@@ -221,12 +221,12 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       // Click the expand button on the first row (appears on hover)
       { action: 'hover', target: '.dataRow:first-child, tr:nth-child(2), [role="row"]:nth-child(2)' },
-      { action: 'wait', value: 500 },
+      { action: 'wait', value: 1500 },
       { action: 'click', target: 'button:has-text("Expand"), [aria-label*="expand" i], .expandRowButton' },
-      { action: 'wait', value: 1000 },
+      { action: 'wait', value: 2000 },
     ],
     screenshotTarget: 'viewport',
     maskSelectors: ['input', 'textarea'], // Mask input values
@@ -242,10 +242,10 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       // Click a cell in the first data row
       { action: 'click', target: '.dataRow .cell' },
-      { action: 'wait', value: 300 },
+      { action: 'wait', value: 2000 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Cell with blue selection border',
@@ -258,10 +258,10 @@ export const FEATURES: Feature[] = [
     page: 'table',
     clickSequence: [
       { action: 'goto', target: AIRTABLE_URLS.table },
-      { action: 'wait', value: 2000 },
+      { action: 'wait', value: 5000 },
       // Hover the second data row
       { action: 'hover', target: '.dataRow:nth-of-type(2)' },
-      { action: 'wait', value: 300 },
+      { action: 'wait', value: 2000 },
     ],
     screenshotTarget: 'viewport',
     notes: 'Row with hover background highlight',

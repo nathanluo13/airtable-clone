@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { api } from "~/trpc/react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type Base = {
   id: string;
@@ -15,6 +15,8 @@ type HomePageProps = {
   onSelectBase: (baseId: string) => void;
   onCreateBase: (name: string) => void;
   isCreating: boolean;
+  userName: string;
+  userEmail: string;
 };
 
 function getInitials(name: string): string {
@@ -39,11 +41,36 @@ function getTimeAgo(date: Date): string {
   return `Opened ${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
-export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: HomePageProps) {
+// Airtable exact box-shadow
+const cardBoxShadow = "rgba(0, 0, 0, 0.32) 0px 0px 1px 0px, rgba(0, 0, 0, 0.08) 0px 0px 2px 0px, rgba(0, 0, 0, 0.08) 0px 1px 3px 0px";
+
+export function HomePage({ bases, onSelectBase, onCreateBase, isCreating, userName, userEmail }: HomePageProps) {
+  const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newBaseName, setNewBaseName] = useState("");
   const [activeNav, setActiveNav] = useState<"home" | "starred" | "shared">("home");
   const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [userMenuOpen]);
+
+  const handleSignOut = async () => {
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  };
 
   const handleCreate = () => {
     if (!newBaseName.trim()) return;
@@ -55,486 +82,719 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
   return (
     <div
       className="flex h-screen flex-col text-[13px]"
-      style={{ backgroundColor: "var(--color-background-default)", color: "var(--color-foreground-default)" }}
+      style={{ backgroundColor: "#fff", color: "rgb(29, 31, 37)" }}
     >
-      {/* Top Promotional Banner */}
-      <div
-        className="flex h-[32px] items-center justify-center gap-2 text-[13px]"
-        style={{ backgroundColor: "var(--palette-blue-light3)" }}
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="var(--palette-blue)">
-          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M8 4v4h3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        </svg>
-        <span>
-          <a href="#" className="underline" style={{ color: "var(--palette-blue)" }}>
-            Invite your friends and coworkers
-          </a>
-          {" "}to earn account credit.
-        </span>
-        <button
-          type="button"
-          className="absolute right-4 rounded p-1 transition-colors"
-          style={{ color: "var(--color-foreground-subtle)" }}
-        >
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
-      </div>
-
       <div className="flex flex-1 min-h-0">
-      {/* Left Sidebar */}
-      <aside
-        className="flex w-[220px] flex-col"
-        style={{
-          backgroundColor: "var(--color-background-default)",
-          borderRight: "1px solid var(--color-border-default)",
-        }}
-      >
-        {/* Header with hamburger menu and logo */}
-        <div className="flex h-[57px] items-center gap-2 px-3">
-          {/* Hamburger Menu */}
-          <button
-            type="button"
-            className="rounded p-2 transition-colors"
-            style={{ color: "var(--color-foreground-subtle)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+        {/* Left Sidebar */}
+        <aside
+          className="flex flex-col"
+          style={{
+            width: "240px",
+            backgroundColor: "#fff",
+            borderRight: "1px solid rgb(225, 227, 230)",
+          }}
+        >
+          {/* Header with hamburger menu and logo */}
+          <div
+            className="flex items-center gap-2 px-2"
+            style={{ height: "46px", borderBottom: "1px solid rgb(225, 227, 230)" }}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-            </svg>
-          </button>
-          {/* Airtable Logo - Colorful 3D style */}
-          <div className="flex items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 200 170" fill="none">
-              {/* Yellow face */}
-              <path d="M90.039 12.368L24.079 39.66c-3.667 1.519-3.63 6.729.062 8.192l66.235 26.266a24.58 24.58 0 0017.402 0l66.234-26.266c3.693-1.463 3.73-6.673.063-8.193l-65.96-27.29a24.58 24.58 0 00-18.076 0z" fill="#FCB400"/>
-              {/* Red face */}
-              <path d="M105.312 88.46v65.617c0 3.12 3.147 5.258 6.048 4.108l73.806-28.648a4.42 4.42 0 002.79-4.108V59.813c0-3.121-3.147-5.258-6.048-4.108l-73.806 28.648a4.42 4.42 0 00-2.79 4.108z" fill="#FF6366"/>
-              {/* Teal face */}
-              <path d="M88.078 91.846v65.125c0 3.27-3.512 5.36-6.318 3.762L12.366 117.7a4.42 4.42 0 01-2.16-3.762V48.812c0-3.27 3.512-5.36 6.318-3.762l69.394 43.034a4.42 4.42 0 012.16 3.762z" fill="#18BFFF"/>
-            </svg>
-            <span className="text-[15px] font-semibold">Airtable</span>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-2 py-2">
-          {/* Home */}
-          <button
-            type="button"
-            onClick={() => setActiveNav("home")}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{
-              backgroundColor: activeNav === "home" ? "var(--color-background-selected-blue)" : "transparent",
-              color: activeNav === "home" ? "var(--palette-blue)" : "var(--color-foreground-default)",
-            }}
-            onMouseEnter={(e) => {
-              if (activeNav !== "home") e.currentTarget.style.backgroundColor = "var(--opacity-darken1)";
-            }}
-            onMouseLeave={(e) => {
-              if (activeNav !== "home") e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 1L1 6v9h5v-5h4v5h5V6L8 1z" />
-            </svg>
-            <span>Home</span>
-          </button>
-
-          {/* Starred */}
-          <button
-            type="button"
-            onClick={() => setActiveNav("starred")}
-            className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{
-              backgroundColor: activeNav === "starred" ? "var(--color-background-selected-blue)" : "transparent",
-              color: activeNav === "starred" ? "var(--palette-blue)" : "var(--color-foreground-default)",
-            }}
-            onMouseEnter={(e) => {
-              if (activeNav !== "starred") e.currentTarget.style.backgroundColor = "var(--opacity-darken1)";
-            }}
-            onMouseLeave={(e) => {
-              if (activeNav !== "starred") e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1l2.3 4.6L15 6.3l-3.5 3.4.8 4.9L8 12.3l-4.3 2.3.8-4.9L1 6.3l4.7-.7L8 1z" />
-              </svg>
-              <span>Starred</span>
-            </div>
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M4 6l4 4 4-4H4z" />
-            </svg>
-          </button>
-
-          {/* Starred description */}
-          <div className="px-3 py-2">
-            <p className="text-[12px]" style={{ color: "var(--color-foreground-subtle)" }}>
-              Your starred bases, interfaces, and workspaces will appear here
-            </p>
-          </div>
-
-          {/* Shared */}
-          <button
-            type="button"
-            onClick={() => setActiveNav("shared")}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{
-              backgroundColor: activeNav === "shared" ? "var(--color-background-selected-blue)" : "transparent",
-              color: activeNav === "shared" ? "var(--palette-blue)" : "var(--color-foreground-default)",
-            }}
-            onMouseEnter={(e) => {
-              if (activeNav !== "shared") e.currentTarget.style.backgroundColor = "var(--opacity-darken1)";
-            }}
-            onMouseLeave={(e) => {
-              if (activeNav !== "shared") e.currentTarget.style.backgroundColor = "transparent";
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M12 10a2 2 0 11-4 0 2 2 0 014 0zm-6-4a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>Shared</span>
-          </button>
-
-          {/* Workspaces */}
-          <div className="mt-4">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-md px-3 py-2 text-[13px] transition-colors"
-              style={{ color: "var(--color-foreground-default)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            >
-              <div className="flex items-center gap-3">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 3h6v6H1V3zm8 0h6v6H9V3zm-8 8h6v4H1v-4zm8 0h6v4H9v-4z" />
-                </svg>
-                <span>Workspaces</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  className="rounded p-1 transition-colors"
-                  style={{ color: "var(--color-foreground-subtle)" }}
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                >
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </button>
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M6 4l4 4-4 4V4z" />
-                </svg>
-              </div>
-            </button>
-          </div>
-        </nav>
-
-        {/* Bottom section */}
-        <div className="px-2 py-2" style={{ borderTop: "1px solid var(--color-border-default)" }}>
-          {/* Templates and apps */}
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{ color: "var(--color-foreground-default)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 0h5v5H9V9z" />
-            </svg>
-            <span>Templates and apps</span>
-          </button>
-
-          {/* Marketplace */}
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{ color: "var(--color-foreground-default)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M2 4h12v2H2V4zm0 4h12v6H2V8z" />
-            </svg>
-            <span>Marketplace</span>
-          </button>
-
-          {/* Import */}
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors"
-            style={{ color: "var(--color-foreground-default)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 1v10M4 7l4 4 4-4M2 13h12v2H2v-2z" />
-            </svg>
-            <span>Import</span>
-          </button>
-        </div>
-
-        {/* Create button */}
-        <div className="p-2">
-          <button
-            type="button"
-            disabled={isCreating}
-            onClick={() => setShowCreateModal(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-md py-2 text-[13px] font-medium transition-colors disabled:opacity-50"
-            style={{
-              backgroundColor: "var(--palette-blue)",
-              color: "white",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue-dark1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue)")}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span>Create</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto" style={{ backgroundColor: "var(--color-background-default)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4">
-          {/* Search */}
-          <div className="relative flex-1 max-w-[600px] mx-auto">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="var(--color-foreground-subtle)"
-              className="absolute left-3 top-1/2 -translate-y-1/2"
-            >
-              <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" fill="none" strokeWidth="1.5" />
-              <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search..."
-              className="h-9 w-full rounded-full pl-10 pr-4 text-[13px] outline-none"
-              style={{
-                backgroundColor: "var(--palette-neutral-lightGray1)",
-                border: "1px solid var(--color-border-default)",
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--palette-blue)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-border-default)")}
-            />
-            <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[11px]"
-              style={{ backgroundColor: "var(--palette-neutral-lightGray2)", color: "var(--color-foreground-subtle)" }}
-            >
-              ⌘ K
-            </div>
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-3 ml-4">
+            {/* Hamburger Menu */}
             <button
               type="button"
               className="rounded p-2 transition-colors"
-              style={{ color: "var(--color-foreground-subtle)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
+              style={{ color: "rgb(97, 102, 112)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm1 11H7v-2h2v2zm0-4H7V4h2v4z" />
+                <path d="M1 3h14v1.5H1V3zm0 4.25h14v1.5H1v-1.5zm0 4.25h14V13H1v-1.5z" />
               </svg>
             </button>
-            <span className="text-[13px]" style={{ color: "var(--color-foreground-default)" }}>
-              Help
-            </span>
-            <div
-              className="h-8 w-8 rounded-full flex items-center justify-center text-[13px] font-medium"
-              style={{ backgroundColor: "var(--palette-teal)", color: "white" }}
+            {/* Airtable Logo */}
+            <div className="flex items-center gap-2">
+              <svg width="24" height="20" viewBox="0 0 200 170" style={{ shapeRendering: "geometricPrecision" }}>
+                <path fill="rgb(255, 186, 5)" d="M90.0389,12.3675 L24.0799,39.6605 C20.4119,41.1785 20.4499,46.3885 24.1409,47.8515 L90.3759,74.1175 C96.1959,76.4255 102.6769,76.4255 108.4959,74.1175 L174.7319,47.8515 C178.4219,46.3885 178.4609,41.1785 174.7919,39.6605 L108.8339,12.3675 C102.8159,9.8775 96.0559,9.8775 90.0389,12.3675" />
+                <path fill="rgb(57, 202, 255)" d="M105.3122,88.4608 L105.3122,154.0768 C105.3122,157.1978 108.4592,159.3348 111.3602,158.1848 L185.1662,129.5368 C186.8512,128.8688 187.9562,127.2408 187.9562,125.4288 L187.9562,59.8128 C187.9562,56.6918 184.8092,54.5548 181.9082,55.7048 L108.1022,84.3528 C106.4182,85.0208 105.3122,86.6488 105.3122,88.4608" />
+                <path fill="rgb(220, 4, 59)" d="M88.0781,91.8464 L66.1741,102.4224 L63.9501,103.4974 L17.7121,125.6524 C14.7811,127.0664 11.0401,124.9304 11.0401,121.6294 L11.0401,60.0864 C11.0401,58.7924 11.6871,57.5874 12.7711,56.8684 C13.3491,56.4904 14.0001,56.2994 14.6551,56.2994 C15.1811,56.2994 15.7101,56.4234 16.2011,56.6674 L87.5961,87.2344 C89.7411,88.1594 90.4641,90.6854 88.0781,91.8464" />
+                <path fill="rgba(0, 0, 0, 0.25)" d="M88.0781,91.8464 L66.1741,102.4224 L17.6001,56.7734 C18.1121,56.4664 18.6971,56.2994 19.2951,56.2994 C19.8211,56.2994 20.3501,56.4234 20.8411,56.6674 L87.5961,87.2344 C89.7411,88.1594 90.4641,90.6854 88.0781,91.8464" />
+              </svg>
+              <span style={{ fontSize: "15px", fontWeight: 600, color: "rgb(29, 31, 37)" }}>Airtable</span>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-2 py-2">
+            {/* Home */}
+            <button
+              type="button"
+              onClick={() => setActiveNav("home")}
+              className="flex w-full items-center gap-3 rounded px-3 transition-colors"
+              style={{
+                height: "32px",
+                backgroundColor: activeNav === "home" ? "rgb(242, 244, 248)" : "transparent",
+                color: "rgb(29, 31, 37)",
+                borderRadius: "3px",
+              }}
+              onMouseEnter={(e) => {
+                if (activeNav !== "home") e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+              }}
+              onMouseLeave={(e) => {
+                if (activeNav !== "home") e.currentTarget.style.backgroundColor = "transparent";
+              }}
             >
-              N
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1.3L1.5 6.5V14.5H6V10H10V14.5H14.5V6.5L8 1.3Z" />
+              </svg>
+              <span style={{ fontSize: "13px" }}>Home</span>
+            </button>
+
+            {/* Starred */}
+            <button
+              type="button"
+              onClick={() => setActiveNav("starred")}
+              className="flex w-full items-center justify-between rounded px-3 transition-colors"
+              style={{
+                height: "32px",
+                backgroundColor: activeNav === "starred" ? "rgb(242, 244, 248)" : "transparent",
+                color: "rgb(29, 31, 37)",
+                borderRadius: "3px",
+              }}
+              onMouseEnter={(e) => {
+                if (activeNav !== "starred") e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+              }}
+              onMouseLeave={(e) => {
+                if (activeNav !== "starred") e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M8 1.5l2 4 4.5.7-3.3 3.2.8 4.5L8 11.6l-4 2.3.8-4.5-3.3-3.2 4.5-.7 2-4z" />
+                </svg>
+                <span style={{ fontSize: "13px" }}>Starred</span>
+              </div>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4 6l4 4 4-4" />
+              </svg>
+            </button>
+
+            {/* Starred description */}
+            <div className="px-3 py-2">
+              <p style={{ fontSize: "12px", color: "rgb(97, 102, 112)", lineHeight: "1.4" }}>
+                Your starred bases, interfaces, and workspaces will appear here
+              </p>
             </div>
-          </div>
-        </div>
 
-        {/* Content */}
-        <div className="px-6 py-4">
-          <h1 className="text-[24px] font-semibold mb-6" style={{ color: "var(--color-foreground-default)" }}>
-            Home
-          </h1>
+            {/* Shared */}
+            <button
+              type="button"
+              onClick={() => setActiveNav("shared")}
+              className="flex w-full items-center gap-3 rounded px-3 transition-colors"
+              style={{
+                height: "32px",
+                backgroundColor: activeNav === "shared" ? "rgb(242, 244, 248)" : "transparent",
+                color: "rgb(29, 31, 37)",
+                borderRadius: "3px",
+              }}
+              onMouseEnter={(e) => {
+                if (activeNav !== "shared") e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+              }}
+              onMouseLeave={(e) => {
+                if (activeNav !== "shared") e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 12v1a2 2 0 002 2h4a2 2 0 002-2v-1M8 1v10M5 4l3-3 3 3" />
+              </svg>
+              <span style={{ fontSize: "13px" }}>Shared</span>
+            </button>
 
-          {/* Start building section */}
-          <div className="mb-8">
-            <h2 className="text-[16px] font-medium mb-1" style={{ color: "var(--color-foreground-default)" }}>
-              Start building
-            </h2>
-            <p className="text-[13px] mb-4" style={{ color: "var(--color-foreground-subtle)" }}>
-              Create apps instantly with AI
-            </p>
-
-            {/* Template cards */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { name: "OKR Manager", desc: "Align and track team objectives and key results.", icon: "⚙️" },
-                { name: "Bug Tracker", desc: "Log, assign, and resolve bugs efficiently.", icon: "✓" },
-                { name: "Project Tracker", desc: "Monitor engineering projects from planning to completion.", icon: "▦" },
-              ].map((template) => (
-                <button
-                  key={template.name}
-                  type="button"
-                  className="flex items-start gap-3 rounded-lg p-4 text-left transition-colors"
-                  style={{
-                    backgroundColor: "var(--color-background-default)",
-                    border: "1px solid var(--color-border-default)",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--palette-blue)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border-default)")}
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded text-[16px]"
-                    style={{ backgroundColor: "var(--palette-neutral-lightGray1)" }}
+            {/* Workspaces */}
+            <div className="mt-2">
+              <div
+                className="flex w-full items-center justify-between rounded px-3 transition-colors cursor-pointer"
+                style={{ height: "32px", color: "rgb(29, 31, 37)", borderRadius: "3px" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <div className="flex items-center gap-3">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="1" y="1" width="6" height="6" rx="1" />
+                    <rect x="9" y="1" width="6" height="6" rx="1" />
+                    <rect x="1" y="9" width="6" height="6" rx="1" />
+                    <rect x="9" y="9" width="6" height="6" rx="1" />
+                  </svg>
+                  <span style={{ fontSize: "13px" }}>Workspaces</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className="rounded p-1 transition-colors"
+                    style={{ color: "rgb(97, 102, 112)" }}
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(225, 227, 230)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
-                    {template.icon}
-                  </div>
-                  <div>
-                    <div className="text-[13px] font-medium" style={{ color: "var(--color-foreground-default)" }}>
-                      {template.name}
-                    </div>
-                    <div className="text-[12px]" style={{ color: "var(--color-foreground-subtle)" }}>
-                      {template.desc}
-                    </div>
-                  </div>
-                </button>
-              ))}
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M6 4l4 4-4 4" />
+                  </svg>
+                </div>
+              </div>
             </div>
+          </nav>
+
+          {/* Bottom section */}
+          <div className="px-2 py-2" style={{ borderTop: "1px solid rgb(225, 227, 230)" }}>
+            {/* Templates and apps */}
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded px-3 transition-colors"
+              style={{ height: "32px", color: "rgb(29, 31, 37)", borderRadius: "3px" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="1" width="6" height="6" rx="1" />
+                <rect x="9" y="1" width="6" height="6" rx="1" />
+                <rect x="1" y="9" width="6" height="6" rx="1" />
+                <rect x="9" y="9" width="6" height="6" rx="1" />
+              </svg>
+              <span style={{ fontSize: "13px" }}>Templates and apps</span>
+            </button>
+
+            {/* Marketplace */}
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded px-3 transition-colors"
+              style={{ height: "32px", color: "rgb(29, 31, 37)", borderRadius: "3px" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="1" y="4" width="14" height="10" rx="1" />
+                <path d="M1 7h14" />
+              </svg>
+              <span style={{ fontSize: "13px" }}>Marketplace</span>
+            </button>
+
+            {/* Import */}
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded px-3 transition-colors"
+              style={{ height: "32px", color: "rgb(29, 31, 37)", borderRadius: "3px" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M8 2v8M5 7l3 3 3-3M2 12v2h12v-2" />
+              </svg>
+              <span style={{ fontSize: "13px" }}>Import</span>
+            </button>
           </div>
 
-          {/* Opened anytime section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
+          {/* Create button */}
+          <div className="p-2">
+            <button
+              type="button"
+              disabled={isCreating}
+              onClick={() => setShowCreateModal(true)}
+              className="flex w-full items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              style={{
+                height: "32px",
+                borderRadius: "6px",
+                backgroundColor: "rgb(22, 110, 225)",
+                color: "white",
+                fontSize: "13px",
+                fontWeight: 500,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(18, 92, 189)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgb(22, 110, 225)")}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span>Create</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto" style={{ backgroundColor: "#fff" }}>
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-4"
+            style={{ height: "46px", borderBottom: "1px solid rgb(225, 227, 230)" }}
+          >
+            {/* Search */}
+            <div className="relative flex-1 max-w-[560px] mx-auto">
               <button
                 type="button"
-                className="flex items-center gap-1 text-[13px] transition-colors"
-                style={{ color: "var(--color-foreground-subtle)" }}
+                className="flex w-full items-center gap-2 rounded-md px-3"
+                style={{
+                  height: "32px",
+                  backgroundColor: "rgb(242, 244, 248)",
+                  color: "rgb(97, 102, 112)",
+                }}
               >
-                <span>Opened anytime</span>
-                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M4 6l4 4 4-4H4z" />
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="6.5" cy="6.5" r="5" />
+                  <path d="M10.5 10.5L14 14" strokeLinecap="round" />
+                </svg>
+                <span style={{ fontSize: "13px", flex: 1, textAlign: "left" }}>Search...</span>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "rgb(97, 102, 112)",
+                    backgroundColor: "rgb(225, 227, 230)",
+                    padding: "2px 6px",
+                    borderRadius: "3px",
+                  }}
+                >
+                  ⌘ K
+                </span>
+              </button>
+            </div>
+
+            {/* Right actions */}
+            <div className="flex items-center gap-2 ml-4">
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded px-2 py-1 transition-colors"
+                style={{ color: "rgb(29, 31, 37)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="8" cy="8" r="6.5" />
+                  <path d="M8 5v3h2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{ fontSize: "13px" }}>Help</span>
+              </button>
+              <button
+                type="button"
+                className="rounded p-1 transition-colors"
+                style={{ color: "rgb(97, 102, 112)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 5.5a4 4 0 10-8 0c0 2 1 3 1 4.5H11c0-1.5 1-2.5 1-4.5zM6 12h4M7 14h2" strokeLinecap="round" />
                 </svg>
               </button>
 
-              {/* View toggle */}
-              <div className="flex items-center gap-1">
+              {/* User Avatar & Menu */}
+              <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setViewMode("list")}
-                  className="rounded p-1.5 transition-colors"
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center justify-center rounded-full text-[13px] font-medium cursor-pointer transition-opacity"
                   style={{
-                    backgroundColor: viewMode === "list" ? "var(--color-background-selected-blue)" : "transparent",
-                    color: viewMode === "list" ? "var(--palette-blue)" : "var(--color-foreground-subtle)",
+                    width: "28px",
+                    height: "28px",
+                    backgroundColor: "rgb(32, 150, 83)",
+                    color: "white",
                   }}
-                  onMouseEnter={(e) => {
-                    if (viewMode !== "list") e.currentTarget.style.backgroundColor = "var(--opacity-darken1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (viewMode !== "list") e.currentTarget.style.backgroundColor = "transparent";
-                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M1 3h14v2H1V3zm0 4h14v2H1V7zm0 4h14v2H1v-2z" />
-                  </svg>
+                  {userName.charAt(0).toUpperCase()}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("grid")}
-                  className="rounded p-1.5 transition-colors"
-                  style={{
-                    backgroundColor: viewMode === "grid" ? "var(--color-background-selected-blue)" : "transparent",
-                    color: viewMode === "grid" ? "var(--palette-blue)" : "var(--color-foreground-subtle)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (viewMode !== "grid") e.currentTarget.style.backgroundColor = "var(--opacity-darken1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (viewMode !== "grid") e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M1 1h6v6H1V1zm8 0h6v6H9V1zM1 9h6v6H1V9zm8 0h6v6H9V9z" />
-                  </svg>
-                </button>
+
+                {/* User Dropdown Menu */}
+                {userMenuOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-2 w-64 rounded-lg py-2"
+                    style={{
+                      backgroundColor: "#fff",
+                      boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+                      border: "1px solid rgb(225, 227, 230)",
+                      zIndex: 50,
+                    }}
+                  >
+                    {/* User Info */}
+                    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgb(225, 227, 230)" }}>
+                      <div className="text-[14px] font-medium" style={{ color: "rgb(29, 31, 37)" }}>
+                        {userName}
+                      </div>
+                      <div className="text-[13px]" style={{ color: "rgb(97, 102, 112)" }}>
+                        {userEmail}
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                        style={{ color: "rgb(29, 31, 37)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                        Account
+                      </button>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                        style={{ color: "rgb(29, 31, 37)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M8 10a2 2 0 100-4 2 2 0 000 4zm6-2c0-.3 0-.6-.1-.9l1.6-1.2-1.5-2.6-1.9.5c-.4-.4-.9-.7-1.4-.9L10 1H6l-.7 1.9c-.5.2-1 .5-1.4.9l-1.9-.5-1.5 2.6 1.6 1.2c-.1.3-.1.6-.1.9s0 .6.1.9L.5 10.1l1.5 2.6 1.9-.5c.4.4.9.7 1.4.9L6 15h4l.7-1.9c.5-.2 1-.5 1.4-.9l1.9.5 1.5-2.6-1.6-1.2c.1-.3.1-.6.1-.9z" />
+                        </svg>
+                        Notification preferences
+                      </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ borderTop: "1px solid rgb(225, 227, 230)", margin: "4px 0" }} />
+
+                    {/* Log out */}
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                        style={{ color: "rgb(29, 31, 37)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M2 2h7v2H4v8h5v2H2V2zm9 3l4 3-4 3V9H6V7h5V5z" />
+                        </svg>
+                        Log out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
 
-            {/* Base cards */}
-            {bases.length === 0 ? (
-              <div
-                className="flex flex-col items-center justify-center py-12 text-center"
-                style={{ color: "var(--color-foreground-subtle)" }}
+          {/* Content */}
+          <div className="px-6 py-6">
+            <h1
+              style={{
+                fontSize: "27px",
+                fontWeight: 600,
+                color: "rgb(29, 31, 37)",
+                marginBottom: "24px",
+              }}
+            >
+              Home
+            </h1>
+
+            {/* Start building section */}
+            <div className="mb-8">
+              <h2
+                style={{
+                  fontSize: "21px",
+                  fontWeight: 575,
+                  color: "rgb(29, 31, 37)",
+                  marginBottom: "4px",
+                }}
               >
-                <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" className="mb-4 opacity-50">
-                  <path d="M2 2h5v5H2V2zm7 0h5v5H9V2zM2 9h5v5H2V9zm7 0h5v5H9V9z" />
-                </svg>
-                <p className="text-[13px] mb-4">No bases yet</p>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(true)}
-                  className="rounded-md px-4 py-2 text-[13px] font-medium transition-colors"
-                  style={{ backgroundColor: "var(--palette-blue)", color: "white" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue-dark1)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue)")}
-                >
-                  Create your first base
-                </button>
-              </div>
-            ) : (
-              <div className={viewMode === "grid" ? "grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4" : "space-y-2"}>
-                {bases.map((base) => (
+                Start building
+              </h2>
+              <p style={{ fontSize: "13px", color: "rgb(97, 102, 112)", marginBottom: "16px" }}>
+                Create apps instantly with AI
+              </p>
+
+              {/* Template cards */}
+              <div className="flex gap-4">
+                {[
+                  { name: "OKR Manager", desc: "Align and track team objectives and key results.", icon: "target" },
+                  { name: "Bug Tracker", desc: "Log, assign, and resolve bugs efficiently.", icon: "check" },
+                  { name: "Project Tracker", desc: "Monitor engineering projects from planning to completion.", icon: "grid" },
+                ].map((template) => (
                   <button
-                    key={base.id}
+                    key={template.name}
                     type="button"
-                    onClick={() => onSelectBase(base.id)}
-                    className={`flex items-center gap-3 rounded-lg text-left transition-colors ${
-                      viewMode === "grid" ? "p-4" : "w-full px-4 py-3"
-                    }`}
+                    className="flex flex-1 items-start gap-3 text-left transition-all"
                     style={{
-                      backgroundColor: "var(--color-background-default)",
-                      border: "1px solid var(--color-border-default)",
+                      backgroundColor: "#fff",
+                      borderRadius: "6px",
+                      boxShadow: cardBoxShadow,
+                      padding: "16px",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--palette-blue)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--color-border-default)")}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = "rgba(0, 0, 0, 0.32) 0px 0px 1px 0px, rgba(0, 0, 0, 0.12) 0px 2px 6px 0px";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = cardBoxShadow;
+                    }}
                   >
-                    {/* Base avatar */}
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-md text-[14px] font-semibold"
-                      style={{ backgroundColor: "var(--palette-teal)", color: "white" }}
+                      className="flex items-center justify-center rounded"
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        backgroundColor: "rgb(242, 244, 248)",
+                      }}
                     >
-                      {getInitials(base.name)}
+                      {template.icon === "target" && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgb(97, 102, 112)" strokeWidth="1.5">
+                          <circle cx="8" cy="8" r="6" />
+                          <circle cx="8" cy="8" r="3" />
+                          <circle cx="8" cy="8" r="0.5" fill="rgb(97, 102, 112)" />
+                        </svg>
+                      )}
+                      {template.icon === "check" && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgb(97, 102, 112)" strokeWidth="1.5">
+                          <path d="M3 8l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                      {template.icon === "grid" && (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgb(97, 102, 112)" strokeWidth="1.5">
+                          <rect x="1" y="1" width="14" height="14" rx="1" />
+                          <path d="M1 5h14M5 5v10" />
+                        </svg>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div
-                        className="text-[13px] font-medium truncate"
-                        style={{ color: "var(--color-foreground-default)" }}
-                      >
-                        {base.name}
+                    <div>
+                      <div style={{ fontSize: "13px", fontWeight: 500, color: "rgb(29, 31, 37)" }}>
+                        {template.name}
                       </div>
-                      <div className="text-[12px]" style={{ color: "var(--color-foreground-subtle)" }}>
-                        {getTimeAgo(base.updatedAt)}
+                      <div style={{ fontSize: "12px", color: "rgb(97, 102, 112)", marginTop: "2px" }}>
+                        {template.desc}
                       </div>
                     </div>
                   </button>
                 ))}
               </div>
-            )}
+            </div>
+
+            {/* Opened anytime section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  className="flex items-center gap-1 transition-colors"
+                  style={{ color: "rgb(29, 31, 37)", fontSize: "13px" }}
+                >
+                  <span>Opened anytime</span>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 6l4 4 4-4" />
+                  </svg>
+                </button>
+
+                {/* View toggle */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("list")}
+                    className="rounded p-1.5 transition-colors"
+                    style={{
+                      backgroundColor: viewMode === "list" ? "rgb(242, 244, 248)" : "transparent",
+                      color: "rgb(97, 102, 112)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (viewMode !== "list") e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (viewMode !== "list") e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M1 3h14v1.5H1V3zm0 4h14v1.5H1V7zm0 4h14v1.5H1V11z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode("grid")}
+                    className="rounded p-1.5 transition-colors"
+                    style={{
+                      backgroundColor: viewMode === "grid" ? "rgb(242, 244, 248)" : "transparent",
+                      color: "rgb(97, 102, 112)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (viewMode !== "grid") e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (viewMode !== "grid") e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <rect x="1" y="1" width="6" height="6" rx="1" />
+                      <rect x="9" y="1" width="6" height="6" rx="1" />
+                      <rect x="1" y="9" width="6" height="6" rx="1" />
+                      <rect x="9" y="9" width="6" height="6" rx="1" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Base cards */}
+              {bases.length === 0 ? (
+                <div
+                  className="flex flex-col items-center justify-center py-12 text-center"
+                  style={{ color: "rgb(97, 102, 112)" }}
+                >
+                  <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" className="mb-4 opacity-50">
+                    <rect x="1" y="1" width="6" height="6" rx="1" />
+                    <rect x="9" y="1" width="6" height="6" rx="1" />
+                    <rect x="1" y="9" width="6" height="6" rx="1" />
+                    <rect x="9" y="9" width="6" height="6" rx="1" />
+                  </svg>
+                  <p style={{ fontSize: "13px", marginBottom: "16px" }}>No bases yet</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(true)}
+                    className="rounded-md px-4 py-2 transition-colors"
+                    style={{
+                      backgroundColor: "rgb(22, 110, 225)",
+                      color: "white",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(18, 92, 189)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgb(22, 110, 225)")}
+                  >
+                    Create your first base
+                  </button>
+                </div>
+              ) : viewMode === "grid" ? (
+                <div
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
+                >
+                  {bases.map((base) => (
+                    <button
+                      key={base.id}
+                      type="button"
+                      onClick={() => onSelectBase(base.id)}
+                      className="flex text-left transition-all overflow-hidden"
+                      style={{
+                        height: "92px",
+                        backgroundColor: "#fff",
+                        boxShadow: cardBoxShadow,
+                        borderRadius: "6px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = "rgba(0, 0, 0, 0.32) 0px 0px 1px 0px, rgba(0, 0, 0, 0.12) 0px 2px 6px 0px";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = cardBoxShadow;
+                      }}
+                    >
+                      {/* Icon container - fills left side of card */}
+                      <div
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: "92px",
+                          height: "92px",
+                          borderRadius: "6px 0px 0px 6px",
+                        }}
+                      >
+                        {/* Actual icon */}
+                        <div
+                          className="flex items-center justify-center text-white"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            backgroundColor: "rgb(64, 124, 74)",
+                            borderRadius: "12px",
+                            fontSize: "22px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {getInitials(base.name)}
+                        </div>
+                      </div>
+                      {/* Text content */}
+                      <div className="flex flex-col justify-center flex-1 min-w-0 pr-4">
+                        <div
+                          className="truncate"
+                          style={{ fontSize: "13px", fontWeight: 500, color: "rgb(29, 31, 37)" }}
+                        >
+                          {base.name}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "rgb(97, 102, 112)", marginTop: "2px" }}>
+                          {getTimeAgo(base.updatedAt)}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* List view */
+                <div>
+                  {/* Table header */}
+                  <div
+                    className="flex items-center px-2 py-2"
+                    style={{
+                      fontSize: "12px",
+                      color: "rgb(97, 102, 112)",
+                      borderBottom: "1px solid rgb(225, 227, 230)",
+                    }}
+                  >
+                    <div style={{ flex: "1 1 40%" }}>Name</div>
+                    <div style={{ flex: "1 1 30%" }}>Last opened</div>
+                    <div style={{ flex: "1 1 30%" }}>Workspace</div>
+                  </div>
+                  {/* Table rows */}
+                  {bases.map((base) => (
+                    <button
+                      key={base.id}
+                      type="button"
+                      onClick={() => onSelectBase(base.id)}
+                      className="flex items-center w-full text-left px-2 transition-colors"
+                      style={{
+                        height: "44px",
+                        backgroundColor: "#fff",
+                        borderBottom: "1px solid rgb(242, 244, 248)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#fff";
+                      }}
+                    >
+                      {/* Name column with icon */}
+                      <div className="flex items-center gap-3" style={{ flex: "1 1 40%" }}>
+                        <div
+                          className="flex items-center justify-center text-white flex-shrink-0"
+                          style={{
+                            width: "24px",
+                            height: "24px",
+                            backgroundColor: "rgb(64, 124, 74)",
+                            borderRadius: "4px",
+                            fontSize: "11px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {getInitials(base.name)}
+                        </div>
+                        <span
+                          className="truncate"
+                          style={{ fontSize: "13px", fontWeight: 500, color: "rgb(29, 31, 37)" }}
+                        >
+                          {base.name}
+                        </span>
+                      </div>
+                      {/* Last opened column */}
+                      <div style={{ flex: "1 1 30%", fontSize: "13px", color: "rgb(97, 102, 112)" }}>
+                        {getTimeAgo(base.updatedAt)}
+                      </div>
+                      {/* Workspace column */}
+                      <div style={{ flex: "1 1 30%", fontSize: "13px", color: "rgb(97, 102, 112)" }}>
+                        My First Workspace
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
       </div>
 
       {/* Create Modal */}
@@ -547,12 +807,12 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
           <div
             className="w-[400px] rounded-lg p-6"
             style={{
-              backgroundColor: "var(--color-background-raised-popover)",
-              boxShadow: "var(--elevation-high)",
+              backgroundColor: "#fff",
+              boxShadow: "0 4px 24px rgba(0, 0, 0, 0.15)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[16px] font-semibold mb-4" style={{ color: "var(--color-foreground-default)" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: 600, color: "rgb(29, 31, 37)", marginBottom: "16px" }}>
               Create a new base
             </h2>
             <input
@@ -561,13 +821,15 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
               onChange={(e) => setNewBaseName(e.target.value)}
               placeholder="Enter base name"
               autoFocus
-              className="mb-4 h-10 w-full rounded-md px-3 text-[13px] outline-none"
+              className="mb-4 w-full rounded-md px-3 outline-none"
               style={{
-                backgroundColor: "var(--color-background-default)",
-                border: "1px solid var(--color-border-default)",
+                height: "40px",
+                backgroundColor: "#fff",
+                border: "1px solid rgb(225, 227, 230)",
+                fontSize: "13px",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--palette-blue)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--color-border-default)")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgb(22, 110, 225)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgb(225, 227, 230)")}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleCreate();
                 if (e.key === "Escape") setShowCreateModal(false);
@@ -577,14 +839,15 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="rounded-md px-4 py-2 text-[13px] transition-colors"
+                className="rounded-md px-4 py-2 transition-colors"
                 style={{
-                  backgroundColor: "var(--color-background-default)",
-                  border: "1px solid var(--color-border-default)",
-                  color: "var(--color-foreground-default)",
+                  backgroundColor: "#fff",
+                  border: "1px solid rgb(225, 227, 230)",
+                  color: "rgb(29, 31, 37)",
+                  fontSize: "13px",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-background-default)")}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(242, 244, 248)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
               >
                 Cancel
               </button>
@@ -592,10 +855,15 @@ export function HomePage({ bases, onSelectBase, onCreateBase, isCreating }: Home
                 type="button"
                 onClick={handleCreate}
                 disabled={!newBaseName.trim() || isCreating}
-                className="rounded-md px-4 py-2 text-[13px] font-medium transition-colors disabled:opacity-50"
-                style={{ backgroundColor: "var(--palette-blue)", color: "white" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue-dark1)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--palette-blue)")}
+                className="rounded-md px-4 py-2 transition-colors disabled:opacity-50"
+                style={{
+                  backgroundColor: "rgb(22, 110, 225)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgb(18, 92, 189)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgb(22, 110, 225)")}
               >
                 {isCreating ? "Creating..." : "Create base"}
               </button>

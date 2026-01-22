@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-01-22T10:06:40.072Z",
+  "run": "2026-01-22T10-03-56",
+  "summary": "0/14 passing",
+  "settings": {
+    "visualTolerance": 5,
+    "antialiasingTolerance": 5,
+    "pixelThreshold": 0.1
+  },
+  "stats": {
+    "total": 14,
+    "passed": 0,
+    "failed": 11,
+    "missing": 3,
+    "errors": 0
+  },
+  "results": [
+    {
+      "featureId": "page-login",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 9.23,
+      "pixelDiffCount": 191476,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/page-login-visual.png"
+    },
+    {
+      "featureId": "page-home",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 1.56,
+      "pixelDiffCount": 32364,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/page-home-visual.png"
+    },
+    {
+      "featureId": "page-table",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.75,
+      "pixelDiffCount": 77677,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/page-table-visual.png"
+    },
+    {
+      "featureId": "ui-filter-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 4.09,
+      "pixelDiffCount": 84827,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-filter-panel-visual.png"
+    },
+    {
+      "featureId": "ui-filter-condition",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-sort-panel",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    },
+    {
+      "featureId": "ui-hide-fields-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 4.03,
+      "pixelDiffCount": 83623,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-hide-fields-panel-visual.png"
+    },
+    {
+      "featureId": "ui-group-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.9,
+      "pixelDiffCount": 80781,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-group-panel-visual.png"
+    },
+    {
+      "featureId": "ui-color-panel",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 4.01,
+      "pixelDiffCount": 83252,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-color-panel-visual.png"
+    },
+    {
+      "featureId": "ui-column-menu",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 4.2,
+      "pixelDiffCount": 87177,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-column-menu-visual.png"
+    },
+    {
+      "featureId": "ui-view-selector",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 4.03,
+      "pixelDiffCount": 83561,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-view-selector-visual.png"
+    },
+    {
+      "featureId": "ui-record-modal",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 83.85,
+      "pixelDiffCount": 1738651,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-record-modal-visual.png"
+    },
+    {
+      "featureId": "ui-cell-selected",
+      "status": "fail",
+      "visualMatch": false,
+      "pixelDiffPercent": 3.76,
+      "pixelDiffCount": 77944,
+      "diffPath": "runs/2026-01-22T10-03-56/diffs/ui-cell-selected-visual.png"
+    },
+    {
+      "featureId": "ui-row-hover",
+      "status": "missing",
+      "visualMatch": false,
+      "pixelDiffPercent": 100,
+      "pixelDiffCount": -1,
+      "error": "Current screenshot not found"
+    }
+  ],
+  "failed": [
+    "ui-record-modal",
+    "page-login",
+    "ui-column-menu",
+    "ui-filter-panel",
+    "ui-hide-fields-panel",
+    "ui-view-selector",
+    "ui-color-panel",
+    "ui-group-panel",
+    "ui-cell-selected",
+    "page-table",
+    "page-home"
+  ],
+  "nextPriority": "ui-record-modal"
+}

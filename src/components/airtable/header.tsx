@@ -1,14 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type HeaderProps = {
   baseName: string;
   onBaseSettingsClick?: () => void;
+  userName: string;
+  userEmail: string;
 };
 
-export function Header({ baseName, onBaseSettingsClick }: HeaderProps) {
+export function Header({ baseName, onBaseSettingsClick, userName, userEmail }: HeaderProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"data" | "automations" | "interfaces" | "forms">("data");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    if (userMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [userMenuOpen]);
+
+  const handleSignOut = async () => {
+    await fetch("/api/auth/signout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  };
 
   const tabs = [
     { id: "data" as const, label: "Data" },
@@ -170,24 +195,98 @@ export function Header({ baseName, onBaseSettingsClick }: HeaderProps) {
           Share
         </button>
 
-        {/* User Avatar */}
-        <button
-          type="button"
-          className="flex items-center justify-center rounded-full transition-colors"
-          style={{
-            width: "28px",
-            height: "28px",
-            backgroundColor: "var(--palette-purple)",
-            color: "white",
-            fontSize: "12px",
-            fontWeight: 500,
-          }}
-          aria-label="Account"
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          U
-        </button>
+        {/* User Avatar & Menu */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            type="button"
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className="flex items-center justify-center rounded-full transition-colors"
+            style={{
+              width: "28px",
+              height: "28px",
+              backgroundColor: "var(--palette-green)",
+              color: "white",
+              fontSize: "12px",
+              fontWeight: 500,
+            }}
+            aria-label="Account"
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            {userName.charAt(0).toUpperCase()}
+          </button>
+
+          {/* User Dropdown Menu */}
+          {userMenuOpen && (
+            <div
+              className="absolute right-0 top-full mt-2 w-64 rounded-lg py-2"
+              style={{
+                backgroundColor: "var(--color-background-default)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+                border: "1px solid var(--color-border-default)",
+                zIndex: 50,
+              }}
+            >
+              {/* User Info */}
+              <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--color-border-default)" }}>
+                <div className="text-[14px] font-medium" style={{ color: "var(--color-foreground-default)" }}>
+                  {userName}
+                </div>
+                <div className="text-[13px]" style={{ color: "var(--color-foreground-subtle)" }}>
+                  {userEmail}
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                  style={{ color: "var(--color-foreground-default)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm0 1c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                  Account
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                  style={{ color: "var(--color-foreground-default)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 10a2 2 0 100-4 2 2 0 000 4zm6-2c0-.3 0-.6-.1-.9l1.6-1.2-1.5-2.6-1.9.5c-.4-.4-.9-.7-1.4-.9L10 1H6l-.7 1.9c-.5.2-1 .5-1.4.9l-1.9-.5-1.5 2.6 1.6 1.2c-.1.3-.1.6-.1.9s0 .6.1.9L.5 10.1l1.5 2.6 1.9-.5c.4.4.9.7 1.4.9L6 15h4l.7-1.9c.5-.2 1-.5 1.4-.9l1.9.5 1.5-2.6-1.6-1.2c.1-.3.1-.6.1-.9z" />
+                  </svg>
+                  Notification preferences
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div style={{ borderTop: "1px solid var(--color-border-default)", margin: "4px 0" }} />
+
+              {/* Log out */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-3 px-4 py-2 text-left text-[13px] transition-colors"
+                  style={{ color: "var(--color-foreground-default)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--opacity-darken1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M2 2h7v2H4v8h5v2H2V2zm9 3l4 3-4 3V9H6V7h5V5z" />
+                  </svg>
+                  Log out
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

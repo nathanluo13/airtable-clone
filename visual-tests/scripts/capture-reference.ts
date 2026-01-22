@@ -39,6 +39,9 @@ async function executeClickSequence(page: Page, steps: ClickStep[]): Promise<voi
       case 'wait':
         await page.waitForTimeout(step.value as number);
         break;
+      case 'waitForSelector':
+        await page.waitForSelector(step.target!);
+        break;
       case 'type':
         await page.fill(step.target!, step.value as string);
         break;

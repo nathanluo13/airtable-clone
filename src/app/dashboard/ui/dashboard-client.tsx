@@ -116,7 +116,12 @@ function operatorsForType(type: string): Array<{ value: FilterOperator; label: s
   ];
 }
 
-export function DashboardClient() {
+type DashboardClientProps = {
+  userName: string;
+  userEmail: string;
+};
+
+export function DashboardClient({ userName, userEmail }: DashboardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const utils = api.useUtils();
@@ -324,6 +329,8 @@ export function DashboardClient() {
         onSelectBase={(id) => setParams({ base: id, table: null, view: null })}
         onCreateBase={(name) => createBase.mutate({ name })}
         isCreating={createBase.isPending}
+        userName={userName}
+        userEmail={userEmail}
       />
     );
   }
@@ -336,7 +343,7 @@ export function DashboardClient() {
       style={{ backgroundColor: 'var(--color-background-default)', color: 'var(--color-foreground-default)' }}
     >
       {/* Header (57px) - Full Width */}
-      <Header baseName={currentBaseName} />
+      <Header baseName={currentBaseName} userName={userName} userEmail={userEmail} />
 
       {/* Table Tabs Bar (32px) - Full Width */}
       <div
@@ -506,11 +513,13 @@ export function DashboardClient() {
             {views
               .filter(v => !viewSearch || v.name.toLowerCase().includes(viewSearch.toLowerCase()))
               .map((v) => (
-              <button
+              <div
                 key={v.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => setParams({ view: v.id })}
-                className="group flex w-full items-center gap-2 rounded px-2 py-2 text-left text-[13px] transition-colors"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setParams({ view: v.id }); }}
+                className="group flex w-full items-center gap-2 rounded px-2 py-2 text-left text-[13px] transition-colors cursor-pointer"
                 style={{
                   backgroundColor: v.id === viewId ? 'var(--color-background-selected-blue)' : 'transparent',
                   color: v.id === viewId ? 'var(--palette-blue)' : 'var(--color-foreground-default)'
@@ -556,7 +565,7 @@ export function DashboardClient() {
                     </svg>
                   </button>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
 
@@ -707,12 +716,12 @@ export function DashboardClient() {
                 className="flex items-center gap-1.5 rounded px-2 py-1 text-[13px] transition-colors"
                 style={{
                   backgroundColor: sorts.length > 0
-                    ? 'var(--palette-orange-light2)'
+                    ? 'var(--palette-green-light3)'
                     : activePanel === "sort"
                       ? 'var(--color-background-selected-blue)'
                       : 'transparent',
                   color: sorts.length > 0
-                    ? 'var(--palette-orange-dark1)'
+                    ? 'var(--palette-green-dark1)'
                     : activePanel === "sort"
                       ? 'var(--palette-blue)'
                       : 'var(--color-foreground-subtle)'
@@ -1387,12 +1396,12 @@ export function DashboardClient() {
             className="min-h-0 flex-1"
             style={{ backgroundColor: 'var(--palette-neutral-lightGray1)' }}
           >
-            {tableQuery.isLoading ? (
+            {tableQuery.isLoading || tablesQuery.isLoading ? (
               <div
                 className="flex h-full items-center justify-center text-[13px]"
                 style={{ color: 'var(--color-foreground-subtle)' }}
               >
-                Loading table…
+                {tablesQuery.isLoading ? 'Loading tables…' : 'Loading table…'}
               </div>
             ) : !tableId ? (
               <div

@@ -585,7 +585,68 @@ export function AirtableGrid(props: {
     setExpandedRowId(rowId);
   };
 
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [allSelected, setAllSelected] = useState(false);
+
+  const toggleRowSelection = (rowId: string) => {
+    setSelectedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(rowId)) {
+        next.delete(rowId);
+      } else {
+        next.add(rowId);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllSelection = () => {
+    if (allSelected) {
+      setSelectedRows(new Set());
+      setAllSelected(false);
+    } else {
+      setSelectedRows(new Set(rows.map(r => r.id)));
+      setAllSelected(true);
+    }
+  };
+
   const columnDefs = useMemo<ColumnDef<RowData>[]>(() => {
+    // Checkbox column
+    const checkbox: ColumnDef<RowData> = {
+      id: "__checkbox",
+      header: () => (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{ backgroundColor: 'var(--cell-background-leftPane-header)' }}
+        >
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={toggleAllSelection}
+            className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300"
+            style={{ accentColor: 'var(--palette-blue)' }}
+          />
+        </div>
+      ),
+      cell: ({ row }: any) => (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{ backgroundColor: 'var(--cell-background-leftPane-header)' }}
+        >
+          <input
+            type="checkbox"
+            checked={selectedRows.has(row.original.id)}
+            onChange={() => toggleRowSelection(row.original.id)}
+            className="h-3.5 w-3.5 cursor-pointer rounded border-gray-300"
+            style={{ accentColor: 'var(--palette-blue)' }}
+          />
+        </div>
+      ),
+      size: 32,
+      enableResizing: false,
+    };
+
+    // Row number column
     const rowNum: ColumnDef<RowData> = {
       id: "__rownum",
       header: () => (
@@ -621,6 +682,7 @@ export function AirtableGrid(props: {
     };
 
     const defs: ColumnDef<RowData>[] = [
+      checkbox,
       rowNum,
       ...columns.map((col) => ({
         id: col.id,
@@ -692,8 +754,42 @@ export function AirtableGrid(props: {
       })),
     ];
 
+    // Add column button at end
+    const addCol: ColumnDef<RowData> = {
+      id: "__addcol",
+      header: () => (
+        <div
+          className="flex h-full items-center justify-center"
+          style={{ backgroundColor: 'var(--cell-background-header)' }}
+        >
+          <button
+            type="button"
+            className="flex h-full w-full items-center justify-center transition-colors"
+            style={{ color: 'var(--color-foreground-subtle)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            aria-label="Add column"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" fill="none" />
+            </svg>
+          </button>
+        </div>
+      ),
+      cell: () => (
+        <div
+          className="h-full"
+          style={{ backgroundColor: 'var(--palette-neutral-white)' }}
+        />
+      ),
+      size: 92,
+      enableResizing: false,
+    };
+
+    defs.push(addCol);
+
     return defs;
-  }, [columns, columnMenuId]);
+  }, [columns, columnMenuId, allSelected, selectedRows]);
 
   const table = useReactTable({
     data: rows,
@@ -838,21 +934,6 @@ export function AirtableGrid(props: {
     >
       <div className="flex h-full flex-col">
       <div
-        className="flex items-center justify-between px-3 py-2 text-[13px]"
-        style={{
-          borderBottom: '1px solid var(--color-border-cell-bottom)',
-          color: 'var(--color-foreground-subtle)'
-        }}
-      >
-        <div>
-          {totalCount === null
-            ? ""
-            : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
-        </div>
-        {rowsQuery.isFetchingNextPage ? <div>Loading…</div> : null}
-      </div>
-
-      <div
         ref={containerRef}
         tabIndex={0}
         onKeyDown={onKeyDown}
@@ -983,6 +1064,53 @@ export function AirtableGrid(props: {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div
+        className="flex items-center gap-2 px-2"
+        style={{
+          height: '32px',
+          minHeight: '32px',
+          backgroundColor: 'var(--palette-neutral-white)',
+          borderTop: '1px solid var(--color-border-cell-bottom)',
+        }}
+      >
+        {/* Add row button */}
+        <button
+          type="button"
+          className="flex items-center justify-center rounded p-1 transition-colors"
+          style={{ color: 'var(--color-foreground-subtle)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          aria-label="Add row"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        {/* Scissors/Add button */}
+        <button
+          type="button"
+          className="flex items-center gap-1 rounded px-2 py-1 text-[13px] transition-colors"
+          style={{ color: 'var(--color-foreground-subtle)' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--opacity-darken1)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M6 4a2 2 0 11-4 0 2 2 0 014 0zM6 12a2 2 0 11-4 0 2 2 0 014 0zM5.5 6l8-4M5.5 10l8 4" stroke="currentColor" strokeWidth="1.5" fill="none" />
+          </svg>
+          <span>Add...</span>
+        </button>
+
+        {/* Record count */}
+        <div className="text-[13px]" style={{ color: 'var(--color-foreground-subtle)' }}>
+          {totalCount === null
+            ? ""
+            : `${totalCount.toLocaleString()} record${totalCount === 1 ? "" : "s"}`}
+          {rowsQuery.isFetchingNextPage ? " · Loading…" : ""}
         </div>
       </div>
       </div>

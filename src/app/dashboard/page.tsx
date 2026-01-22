@@ -16,7 +16,10 @@ export default async function DashboardPage() {
 
   return (
     <HydrateClient>
-      <DashboardClient />
+      <DashboardClient
+        userName={user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User'}
+        userEmail={user.email ?? ''}
+      />
     </HydrateClient>
   );
 }
